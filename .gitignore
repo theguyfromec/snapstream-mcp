@@ -13,3 +13,9 @@ venv/
 
 # Local audit logs
 *.audit.jsonl
+
+# Tooling
+.pytest_cache/
+*.egg-info/
+build/
+dist/
