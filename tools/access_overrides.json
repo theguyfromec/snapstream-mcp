@@ -1,0 +1,2771 @@
+{
+ "_comment": "Authoritative per-method access for the SnapStream tenant API (read, write, blocked). tools/build_catalog.py applies this file; any method absent from it is built as write (fail closed).",
+ "methods": [
+  {
+   "service": "AuthenticationManager",
+   "method": "CloneSession",
+   "access": "blocked",
+   "reason": "Mints a new session ticket from an existing one; returns a ticket."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "GetMeTicketDetails",
+   "access": "blocked",
+   "reason": "Returns AuthTicketDetails for the caller session, which can carry the ticket itself; fail closed until the response shape is verified offline."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "GetTicketDetails",
+   "access": "blocked",
+   "reason": "Inspects another session ticket and its permissions; requires passing a ticket and exposes session data."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "GetUserEmail",
+   "access": "read",
+   "reason": "Returns the API user email address; no side effects."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "Login",
+   "access": "blocked",
+   "reason": "Takes a username and password and returns a session ticket; credential handling."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "Logout",
+   "access": "blocked",
+   "reason": "Ends a session; session handling with no agent use."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "RegisterClient",
+   "access": "blocked",
+   "reason": "Registers a client type/ID on the server; session plumbing that mutates server state."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "Relogin",
+   "access": "blocked",
+   "reason": "Renews a session ticket; session handling, gateway auth needs no tickets."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "SamlLogin",
+   "access": "blocked",
+   "reason": "Exchanges a SAML response for a session ticket; credential handling."
+  },
+  {
+   "service": "Configuration",
+   "method": "DeleteProfile",
+   "access": "write",
+   "reason": "Deletes a recompression profile (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetActiveProxyProfile",
+   "access": "read",
+   "reason": "Reads the active proxy profile for a subsystem; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetApiLevel",
+   "access": "read",
+   "reason": "Returns the Broker API level string; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetAudioProfiles",
+   "access": "read",
+   "reason": "Lists recompression profiles; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetBackendMachineName",
+   "access": "read",
+   "reason": "Looks up a machine name by ID; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetGlobalMachineName",
+   "access": "read",
+   "reason": "Looks up a machine name by ID; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetGlobalPublicMachineName",
+   "access": "read",
+   "reason": "Looks up a machine name by ID; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetH264Profiles",
+   "access": "read",
+   "reason": "Lists recompression profiles; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetMachineName",
+   "access": "read",
+   "reason": "Looks up a machine name by ID; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetMachineTimeZone",
+   "access": "read",
+   "reason": "Returns the machine time zone; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetMpeg2Profiles",
+   "access": "read",
+   "reason": "Lists recompression profiles; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetProfileById",
+   "access": "read",
+   "reason": "Reads one recompression profile; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetProfiles",
+   "access": "read",
+   "reason": "Lists recompression profiles; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetProxyProfiles",
+   "access": "read",
+   "reason": "Lists recompression profiles; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetPublicMachineName",
+   "access": "read",
+   "reason": "Looks up a machine name by ID; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsBool",
+   "access": "read",
+   "reason": "Reads a cluster setting as bool; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsDouble",
+   "access": "read",
+   "reason": "Reads a cluster setting as double; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsGuid",
+   "access": "blocked",
+   "reason": "Arbitrary cluster setting lookup returning a raw guid; can expose stored credentials (SMTP, social, storage or license keys)."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsInt",
+   "access": "read",
+   "reason": "Reads a cluster setting as int; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsLong",
+   "access": "read",
+   "reason": "Reads a cluster setting as long; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsObject",
+   "access": "blocked",
+   "reason": "Arbitrary cluster setting lookup returning a raw object; can expose stored credentials (SMTP, social, storage or license keys)."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetSettingAsString",
+   "access": "blocked",
+   "reason": "Arbitrary cluster setting lookup returning a raw string; can expose stored credentials (SMTP, social, storage or license keys)."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsBool",
+   "access": "read",
+   "reason": "Reads a per-user setting as bool; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsDouble",
+   "access": "read",
+   "reason": "Reads a per-user setting as double; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsGuid",
+   "access": "blocked",
+   "reason": "Arbitrary per-user setting lookup returning a raw guid; can expose stored tokens or credentials."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsInt",
+   "access": "read",
+   "reason": "Reads a per-user setting as int; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsLong",
+   "access": "read",
+   "reason": "Reads a per-user setting as long; typed scalar cannot carry a credential string."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsObject",
+   "access": "blocked",
+   "reason": "Arbitrary per-user setting lookup returning a raw object; can expose stored tokens or credentials."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetUserSettingAsString",
+   "access": "blocked",
+   "reason": "Arbitrary per-user setting lookup returning a raw string; can expose stored tokens or credentials."
+  },
+  {
+   "service": "Configuration",
+   "method": "GetXDCamProfiles",
+   "access": "read",
+   "reason": "Lists recompression profiles; no side effects."
+  },
+  {
+   "service": "Configuration",
+   "method": "SaveAudioProfile",
+   "access": "write",
+   "reason": "Creates or overwrites a recompression profile (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "SaveH264Profile",
+   "access": "write",
+   "reason": "Creates or overwrites a recompression profile (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "SaveMpeg2Profile",
+   "access": "write",
+   "reason": "Creates or overwrites a recompression profile (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "SaveProxyProfile",
+   "access": "write",
+   "reason": "Creates or overwrites a recompression profile (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "SaveXDCamProfile",
+   "access": "write",
+   "reason": "Creates or overwrites a recompression profile (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "SetSetting",
+   "access": "write",
+   "reason": "Changes a cluster-wide setting (EditSettings)."
+  },
+  {
+   "service": "Configuration",
+   "method": "SetUserSetting",
+   "access": "write",
+   "reason": "Changes a per-user setting."
+  },
+  {
+   "service": "Configuration",
+   "method": "UseBackendMachineName",
+   "access": "read",
+   "reason": "Returns a bool about machine-name routing for the caller; no side effects."
+  },
+  {
+   "service": "FeatureManager",
+   "method": "GetFeatureAsBool",
+   "access": "read",
+   "reason": "Reads an account entitlement flag; entitlements are not secrets, no side effects."
+  },
+  {
+   "service": "FeatureManager",
+   "method": "GetFeatureAsInt",
+   "access": "read",
+   "reason": "Reads an account entitlement flag; entitlements are not secrets, no side effects."
+  },
+  {
+   "service": "FeatureManager",
+   "method": "GetFeatureAsLong",
+   "access": "read",
+   "reason": "Reads an account entitlement flag; entitlements are not secrets, no side effects."
+  },
+  {
+   "service": "FeatureManager",
+   "method": "GetFeatureAsObject",
+   "access": "read",
+   "reason": "Reads an account entitlement flag; entitlements are not secrets, no side effects."
+  },
+  {
+   "service": "FeatureManager",
+   "method": "GetFeatureAsString",
+   "access": "read",
+   "reason": "Reads an account entitlement flag; entitlements are not secrets, no side effects."
+  },
+  {
+   "service": "FileAccess",
+   "method": "EndSession",
+   "access": "blocked",
+   "reason": "Closes a raw file access session; only meaningful with the blocked session methods."
+  },
+  {
+   "service": "FileAccess",
+   "method": "Exists",
+   "access": "read",
+   "reason": "Checks whether a server path exists; no side effects."
+  },
+  {
+   "service": "FileAccess",
+   "method": "GetLength",
+   "access": "read",
+   "reason": "Returns a file length; no side effects."
+  },
+  {
+   "service": "FileAccess",
+   "method": "OpenReadStream",
+   "access": "blocked",
+   "reason": "Allocates a byte stream on a file session; raw stream plumbing with no JSON-usable output."
+  },
+  {
+   "service": "FileAccess",
+   "method": "StartSession",
+   "access": "blocked",
+   "reason": "Allocates a server-side file handle and accepts a write accessMode; raw file stream plumbing."
+  },
+  {
+   "service": "FileAccess",
+   "method": "StartSessionWithShareMode",
+   "access": "blocked",
+   "reason": "Same as StartSession with a share mode; allocates a file handle, raw stream plumbing."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetAWSRegion",
+   "access": "read",
+   "reason": "Returns the AWS region name or null; no side effects."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetApiLevel",
+   "access": "read",
+   "reason": "Returns the Broker API level string; no side effects."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsBool",
+   "access": "read",
+   "reason": "Reads a machine-local setting as bool; typed scalar, no side effects."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsDouble",
+   "access": "read",
+   "reason": "Reads a machine-local setting as double; typed scalar, no side effects."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsGuid",
+   "access": "blocked",
+   "reason": "Arbitrary machine-local setting lookup returning a raw guid; can expose stored credentials or keys."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsInt",
+   "access": "read",
+   "reason": "Reads a machine-local setting as int; typed scalar, no side effects."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsLong",
+   "access": "read",
+   "reason": "Reads a machine-local setting as long; typed scalar, no side effects."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsObject",
+   "access": "blocked",
+   "reason": "Arbitrary machine-local setting lookup returning a raw object; can expose stored credentials or keys."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "GetSettingAsString",
+   "access": "blocked",
+   "reason": "Arbitrary machine-local setting lookup returning a raw string; can expose stored credentials or keys."
+  },
+  {
+   "service": "LocalConfiguration",
+   "method": "SetSetting",
+   "access": "write",
+   "reason": "Changes a machine-local setting (EditSettings)."
+  },
+  {
+   "service": "Logger",
+   "method": "GetAnalyticsLogCount",
+   "access": "blocked",
+   "reason": "Companion count for analytics collection; usage telemetry plumbing."
+  },
+  {
+   "service": "Logger",
+   "method": "GetAnalyticsLogEntries",
+   "access": "blocked",
+   "reason": "Feeds analytics collection; usage telemetry plumbing that may mark entries as collected."
+  },
+  {
+   "service": "Logger",
+   "method": "GetDebugLogUtilLevels",
+   "access": "read",
+   "reason": "Reads current per-class log level overrides; no side effects."
+  },
+  {
+   "service": "Logger",
+   "method": "GetLogCount",
+   "access": "read",
+   "reason": "Counts log entries matching a search (EditSettings); no side effects."
+  },
+  {
+   "service": "Logger",
+   "method": "GetLogEntries",
+   "access": "read",
+   "reason": "Pages log entries matching a search (EditSettings); no side effects."
+  },
+  {
+   "service": "Logger",
+   "method": "Log",
+   "access": "write",
+   "reason": "Writes an arbitrary message into the instance log."
+  },
+  {
+   "service": "Logger",
+   "method": "SetDebugLogUtilLevel",
+   "access": "write",
+   "reason": "Changes debug log verbosity for a class."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "AddAlert",
+   "access": "write",
+   "reason": "Creates a saved-search alert and can send a test email."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "AddSavedFromEmailAddress",
+   "access": "write",
+   "reason": "Saves a sender address for the user."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "AddSavedToEmailAddresses",
+   "access": "write",
+   "reason": "Saves recipient addresses for the user."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "DeleteFromEmailAddress",
+   "access": "write",
+   "reason": "Deletes a saved sender address."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "DeleteToEmailAddress",
+   "access": "write",
+   "reason": "Deletes a saved recipient address."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "EditAlert",
+   "access": "write",
+   "reason": "Saves changes to a saved-search alert and can send a test email."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetAlert",
+   "access": "read",
+   "reason": "Reads one saved-search alert; no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetAllAlertCount",
+   "access": "read",
+   "reason": "Counts all users' alerts (SavedSearchAdmin); no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetAllAlerts",
+   "access": "read",
+   "reason": "Pages all users' alerts (SavedSearchAdmin); no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetMyAlertCount",
+   "access": "read",
+   "reason": "Counts the caller's alerts; no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetMyAlerts",
+   "access": "read",
+   "reason": "Pages the caller's alerts; no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetNotifyEvents",
+   "access": "read",
+   "reason": "Pages notify-feed events (EditSettings); no read-marking indicated."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetNotifyEventsCount",
+   "access": "read",
+   "reason": "Counts notify-feed events; no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetSavedFromEmailAddresses",
+   "access": "read",
+   "reason": "Lists saved sender addresses; no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "GetSavedToEmailAddresses",
+   "access": "read",
+   "reason": "Lists saved recipient addresses; no side effects."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "RemoveAlert",
+   "access": "write",
+   "reason": "Deletes a saved-search alert."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "SendSupportTicket",
+   "access": "write",
+   "reason": "Submits a support ticket to SnapStream with optional file and URL attachments; external send."
+  },
+  {
+   "service": "NotifierManager",
+   "method": "SendTestAlert",
+   "access": "write",
+   "reason": "Sends a test alert email."
+  },
+  {
+   "service": "Search",
+   "method": "SearchAirings",
+   "access": "read",
+   "reason": "Searches program guide airings; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchAiringsCount",
+   "access": "read",
+   "reason": "Counts guide airings matching a search; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchAiringsWithSuggestion",
+   "access": "read",
+   "reason": "Guide airing search with suggestions; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchRecordingWithRefinement",
+   "access": "read",
+   "reason": "Searches one media item's transcript at block-level accuracy; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchRecordings",
+   "access": "read",
+   "reason": "Full-text search over recordings and transcripts; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchRecordingsCount",
+   "access": "read",
+   "reason": "Counts recordings matching a search; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchRecordingsWithSuggestion",
+   "access": "read",
+   "reason": "Full-text recording search with did-you-mean suggestions; no side effects."
+  },
+  {
+   "service": "Search",
+   "method": "SearchRecordingsWithSuggestionCount",
+   "access": "read",
+   "reason": "Counts matching recordings with a suggestion; no side effects."
+  },
+  {
+   "service": "StreamScheduler",
+   "method": "GetStreamLinkForChannel",
+   "access": "blocked",
+   "reason": "Returns a live-stream URL that may carry an access token or signed query string (a stream credential, like GetRecordingRtmpInfo), and fetching it likely spins up a stream session or tuner."
+  },
+  {
+   "service": "Library",
+   "method": "AddExportDestination",
+   "access": "write",
+   "reason": "Creates an unmanaged export destination."
+  },
+  {
+   "service": "Library",
+   "method": "AddFolder",
+   "access": "write",
+   "reason": "Creates a new Library Folder."
+  },
+  {
+   "service": "Library",
+   "method": "AddMediaItem",
+   "access": "write",
+   "reason": "Creates a new Media Item record in the Library."
+  },
+  {
+   "service": "Library",
+   "method": "AddMediaTrackInfoForFile",
+   "access": "blocked",
+   "reason": "Internal recorder plumbing: injects track info for an in-progress recording by raw file path."
+  },
+  {
+   "service": "Library",
+   "method": "AddPlayList",
+   "access": "write",
+   "reason": "Creates a playlist."
+  },
+  {
+   "service": "Library",
+   "method": "DeleteBookmark",
+   "access": "write",
+   "reason": "Deletes a Clip Bookmark; destructive."
+  },
+  {
+   "service": "Library",
+   "method": "DeleteExportDestinationById",
+   "access": "write",
+   "reason": "Deletes an export destination (catalog summary is a copy-paste error; name and void return show it deletes)."
+  },
+  {
+   "service": "Library",
+   "method": "DeleteMediaItem",
+   "access": "write",
+   "reason": "Deletes a Media Item from the Library; destructive."
+  },
+  {
+   "service": "Library",
+   "method": "DeletePlayList",
+   "access": "write",
+   "reason": "Deletes a playlist; destructive."
+  },
+  {
+   "service": "Library",
+   "method": "DeleteVariant",
+   "access": "write",
+   "reason": "Deletes a variant (proxy or recompressed copy) of a Media Item; destructive."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllBookmarks",
+   "access": "read",
+   "reason": "Pages all Bookmarks in the Library; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllBookmarksCount",
+   "access": "read",
+   "reason": "Counts all Bookmarks; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllClipsForItem",
+   "access": "read",
+   "reason": "Pages all clip Media Items cut from a source item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllDriveLimits",
+   "access": "read",
+   "reason": "Reads retention limits for all Drives; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllJobLimits",
+   "access": "read",
+   "reason": "Reads retention limits for all recording Jobs; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllPastAndCurrentChannels",
+   "access": "read",
+   "reason": "Lists channels from current lineups and past recordings; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllPastChannels",
+   "access": "read",
+   "reason": "Lists channels from past recordings; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllPlayLists",
+   "access": "read",
+   "reason": "Lists all playlists; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllShowLimits",
+   "access": "read",
+   "reason": "Reads retention limits for all Series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetAllTags",
+   "access": "read",
+   "reason": "Lists tags on accessible Media Items; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetArchivedMediaItem",
+   "access": "read",
+   "reason": "Fetches one Archived Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetArchivedMediaItemByMachineAndPath",
+   "access": "read",
+   "reason": "Looks up an Archived Media Item by machine and path; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetArchivedMediaItems",
+   "access": "read",
+   "reason": "Pages Archived Media Items; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetArchivedMediaItemsFiltered",
+   "access": "read",
+   "reason": "Pages Archived Media Items with sorts and filters; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetBookmarkById",
+   "access": "read",
+   "reason": "Fetches one Bookmark by ID; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetBookmarks",
+   "access": "read",
+   "reason": "Pages Bookmarks under a parent Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetBookmarksCountForParent",
+   "access": "read",
+   "reason": "Counts Bookmarks on a Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetClipsAndBookmarks",
+   "access": "read",
+   "reason": "Pages Clips and Bookmarks for a Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetClipsAndBookmarksForInput",
+   "access": "read",
+   "reason": "Pages Clips and Bookmarks for an Input; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetDrive",
+   "access": "read",
+   "reason": "Fetches one Drive; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetDriveLimits",
+   "access": "read",
+   "reason": "Reads retention limits for one Drive; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetDriveStats",
+   "access": "read",
+   "reason": "Reads usage statistics for one Drive; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetDrives",
+   "access": "read",
+   "reason": "Lists Drives; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetDrivesOnMachine",
+   "access": "read",
+   "reason": "Lists Drives on one machine; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetExportDestinationById",
+   "access": "read",
+   "reason": "Fetches one export destination with no side effects; ExportDestination schema is undocumented, so run the response through the credential-field redactor."
+  },
+  {
+   "service": "Library",
+   "method": "GetExportDestinationByIdAsAdmin",
+   "access": "read",
+   "reason": "Admin fetch of one export destination ignoring permissions; no side effects, redact credential-like fields."
+  },
+  {
+   "service": "Library",
+   "method": "GetExportDestinations",
+   "access": "read",
+   "reason": "Pages export destinations with no side effects; redact credential-like fields."
+  },
+  {
+   "service": "Library",
+   "method": "GetExportDestinationsAsAdmin",
+   "access": "read",
+   "reason": "Admin page of export destinations ignoring permissions; no side effects, redact credential-like fields."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolder",
+   "access": "read",
+   "reason": "Fetches one Folder by ID; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolderAsAdmin",
+   "access": "read",
+   "reason": "Fetches one Folder by ID ignoring permissions; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolderByName",
+   "access": "read",
+   "reason": "Fetches one Folder by name; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolderByNameAsAdmin",
+   "access": "read",
+   "reason": "Fetches one Folder by name ignoring permissions; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolderCount",
+   "access": "read",
+   "reason": "Returns a Folder count; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolderCountAsAdmin",
+   "access": "read",
+   "reason": "Returns a Folder count ignoring permissions; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolderPathForId",
+   "access": "read",
+   "reason": "Fetches folder path info by ID; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFolders",
+   "access": "read",
+   "reason": "Pages Folders visible to the caller; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetFoldersAsAdmin",
+   "access": "read",
+   "reason": "Pages all Folders ignoring folder permissions; pure read (needs EditSettings)."
+  },
+  {
+   "service": "Library",
+   "method": "GetGlobalFolderPathForId",
+   "access": "read",
+   "reason": "Fetches folder path info from the cross-endpoint global cache; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetGlobalMediaItem",
+   "access": "read",
+   "reason": "Fetches one Media Item from the cross-endpoint cache by ID and contextId; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetGlobalMediaItemByFolderPathAndFile",
+   "access": "read",
+   "reason": "Cross-endpoint lookup by folder path ID and filename; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetGlobalMediaItemByMachineAndPath",
+   "access": "read",
+   "reason": "Cross-endpoint lookup of a Media Item by machine and path; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetJobLimits",
+   "access": "read",
+   "reason": "Reads retention limits for one Job; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetLastChange",
+   "access": "read",
+   "reason": "Returns the Library last-change timestamp; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetLoudnessTracksForChannel",
+   "access": "read",
+   "reason": "Lists loudness track names for a channel; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaInformation",
+   "access": "read",
+   "reason": "Projects selected columns over filtered Library items; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItem",
+   "access": "read",
+   "reason": "Fetches one Media Item by ID; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemByFolderPathAndFile",
+   "access": "read",
+   "reason": "Looks up a Media Item by folder path ID and filename; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemByMachineAndPath",
+   "access": "read",
+   "reason": "Looks up a Media Item by machine ID and local file path; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemColumnFilteredCount",
+   "access": "read",
+   "reason": "Counts Media Items matching nested ColumnFilter arrays; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemCount",
+   "access": "read",
+   "reason": "Counts Media Items; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemFilteredCount",
+   "access": "read",
+   "reason": "Counts Media Items matching ColumnFilters; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemOrClosestForTime",
+   "access": "read",
+   "reason": "Finds the Media Item covering or nearest a time on a channel; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemVariant",
+   "access": "read",
+   "reason": "Fetches one variant of a Media Item by type; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemVariants",
+   "access": "read",
+   "reason": "Lists variants of a Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItems",
+   "access": "read",
+   "reason": "Pages Media Items (verified live, 200 with GetMediaItemsResult); pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsByChannelAndTime",
+   "access": "read",
+   "reason": "Pages Media Items airing on a channel at a given time; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsByRecordingJobAndChannel",
+   "access": "read",
+   "reason": "Pages Media Items produced by a recording job on a channel; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsByTag",
+   "access": "read",
+   "reason": "Pages Media Items carrying a tag; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsByTagCount",
+   "access": "read",
+   "reason": "Counts Media Items carrying a tag; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsColumnFiltered",
+   "access": "read",
+   "reason": "Pages Media Items with nested boolean ColumnFilter arrays; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsFiltered",
+   "access": "read",
+   "reason": "Pages Media Items with ColumnSort/ColumnFilter; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaItemsWithTags",
+   "access": "read",
+   "reason": "Fetches Media Items by ID list with tags populated; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaSeries",
+   "access": "read",
+   "reason": "Fetches one Media Series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaSeriesCount",
+   "access": "read",
+   "reason": "Counts Media Series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaSeriesPlural",
+   "access": "read",
+   "reason": "Pages Media Series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaSeriesWithClips",
+   "access": "read",
+   "reason": "Fetches one Media Series including clip-only series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMediaSeriesWithClipsPlural",
+   "access": "read",
+   "reason": "Pages Media Series including clip-only series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMyBookmarks",
+   "access": "read",
+   "reason": "Pages the calling user's own Bookmarks; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMyBookmarksCount",
+   "access": "read",
+   "reason": "Counts the calling user's Bookmarks; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetMyClipsForItem",
+   "access": "read",
+   "reason": "Pages the calling user's clip Media Items cut from a source item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayList",
+   "access": "read",
+   "reason": "Fetches one playlist; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayListFromPlayListItem",
+   "access": "read",
+   "reason": "Fetches the playlist containing an item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayListItem",
+   "access": "read",
+   "reason": "Fetches one playlist item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayLists",
+   "access": "read",
+   "reason": "Pages playlists; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayListsCount",
+   "access": "read",
+   "reason": "Counts playlists; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayoutTargetById",
+   "access": "read",
+   "reason": "Fetches one playout target; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetPlayoutTargets",
+   "access": "read",
+   "reason": "Lists playout targets; pure read (does not start playout)."
+  },
+  {
+   "service": "Library",
+   "method": "GetShowLimits",
+   "access": "read",
+   "reason": "Reads retention limits for one Series; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetSmartChapters",
+   "access": "read",
+   "reason": "Returns SmartChapter[] for a Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetSocialInsightMetrics",
+   "access": "read",
+   "reason": "Reads posted-social metrics for a Media Item; changes no state (may pull from the social platforms server side)."
+  },
+  {
+   "service": "Library",
+   "method": "GetTagCount",
+   "access": "read",
+   "reason": "Counts tags in use; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "GetTranscript",
+   "access": "read",
+   "reason": "Returns the Caption[] transcript for a Media Item; pure read."
+  },
+  {
+   "service": "Library",
+   "method": "RefreshFolder",
+   "access": "write",
+   "reason": "Triggers a rescan of the Folder from disk, which can add or drop Library entries."
+  },
+  {
+   "service": "Library",
+   "method": "RemoveFolder",
+   "access": "write",
+   "reason": "Removes a Folder from the Library."
+  },
+  {
+   "service": "Library",
+   "method": "RenameTranscriptSpeaker",
+   "access": "write",
+   "reason": "Rewrites speaker IDs throughout a stored transcript."
+  },
+  {
+   "service": "Library",
+   "method": "SaveBookmark",
+   "access": "write",
+   "reason": "Creates or modifies a Bookmark (clip segment metadata)."
+  },
+  {
+   "service": "Library",
+   "method": "SaveDriveLimits",
+   "access": "write",
+   "reason": "Changes Drive retention limits; can cause automatic deletion of recordings."
+  },
+  {
+   "service": "Library",
+   "method": "SaveExportDestination",
+   "access": "write",
+   "reason": "Modifies an unmanaged export destination."
+  },
+  {
+   "service": "Library",
+   "method": "SaveFolder",
+   "access": "write",
+   "reason": "Modifies Folder settings."
+  },
+  {
+   "service": "Library",
+   "method": "SaveJobLimits",
+   "access": "write",
+   "reason": "Changes Job retention limits; can cause automatic deletion of recordings."
+  },
+  {
+   "service": "Library",
+   "method": "SaveMediaItem",
+   "access": "write",
+   "reason": "Modifies Media Item metadata."
+  },
+  {
+   "service": "Library",
+   "method": "SaveProxyVariant",
+   "access": "blocked",
+   "reason": "Internal proxy pipeline plumbing: writes proxy variant metadata normally set by the transcode worker."
+  },
+  {
+   "service": "Library",
+   "method": "SaveShowLimits",
+   "access": "write",
+   "reason": "Changes Series retention limits; can cause automatic deletion of recordings."
+  },
+  {
+   "service": "Library",
+   "method": "SaveUserSpecificProperty",
+   "access": "write",
+   "reason": "Writes a per-user property (for example watched state) on a Media Item."
+  },
+  {
+   "service": "Library",
+   "method": "SaveVariant",
+   "access": "blocked",
+   "reason": "Internal recompression/proxy pipeline plumbing: writes variant file metadata the pipeline owns; a bad write desyncs Library from disk."
+  },
+  {
+   "service": "Library",
+   "method": "UpdateBookmarkPrivacyState",
+   "access": "write",
+   "reason": "Changes Bookmark sharing state."
+  },
+  {
+   "service": "Library",
+   "method": "UpdatePlayList",
+   "access": "write",
+   "reason": "Renames a playlist."
+  },
+  {
+   "service": "Library",
+   "method": "UpdatePlayListItemWithNewMediaItemId",
+   "access": "write",
+   "reason": "Bulk rewrites Media Item references across all playlists."
+  },
+  {
+   "service": "Library",
+   "method": "UpdatePlayListItems",
+   "access": "write",
+   "reason": "Reorders or replaces playlist items."
+  },
+  {
+   "service": "Library",
+   "method": "UpdatePlaylistPrivacyState",
+   "access": "write",
+   "reason": "Changes playlist sharing state."
+  },
+  {
+   "service": "Library",
+   "method": "UpdateVariant",
+   "access": "blocked",
+   "reason": "Internal recompression worker callback (profile plus inProgress flag) that creates or updates variant records."
+  },
+  {
+   "service": "Scheduler",
+   "method": "AddChannelGroup",
+   "access": "write",
+   "reason": "Creates a channel group."
+  },
+  {
+   "service": "Scheduler",
+   "method": "AddChannelGroupChannel",
+   "access": "write",
+   "reason": "Adds a channel to a channel group."
+  },
+  {
+   "service": "Scheduler",
+   "method": "AddChannelGroupChannels",
+   "access": "write",
+   "reason": "Adds channels to a channel group."
+  },
+  {
+   "service": "Scheduler",
+   "method": "AddCustomChannel",
+   "access": "write",
+   "reason": "Creates a custom channel on a lineup."
+  },
+  {
+   "service": "Scheduler",
+   "method": "AddCustomLineup",
+   "access": "write",
+   "reason": "Creates a custom lineup."
+  },
+  {
+   "service": "Scheduler",
+   "method": "AddRecentRecording",
+   "access": "write",
+   "reason": "Inserts a recent recording record."
+  },
+  {
+   "service": "Scheduler",
+   "method": "BlockAiringRecording",
+   "access": "write",
+   "reason": "Blocks a scheduled airing from recording."
+  },
+  {
+   "service": "Scheduler",
+   "method": "BlockManualRecording",
+   "access": "write",
+   "reason": "Blocks a manual recording timeslot."
+  },
+  {
+   "service": "Scheduler",
+   "method": "CancelUpdate",
+   "access": "write",
+   "reason": "Cancels the running program guide update."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ChangeLiveTvStreamChannel",
+   "access": "write",
+   "reason": "Retunes an in-progress Live TV streaming job to another channel."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ConfigureMasterTunerPart",
+   "access": "blocked",
+   "reason": "Internal cluster plumbing: binds a master tuner part to an encoder content stream source URL."
+  },
+  {
+   "service": "Scheduler",
+   "method": "CreateLiveTvJob",
+   "access": "write",
+   "reason": "Starts a Live TV streaming job, allocating a tuner."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteChannelGroup",
+   "access": "write",
+   "reason": "Deletes a channel group."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteChannelGroupChannel",
+   "access": "write",
+   "reason": "Removes a channel from a channel group."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteChannelGroupChannels",
+   "access": "write",
+   "reason": "Removes channels from a channel group."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteCustomChannel",
+   "access": "write",
+   "reason": "Deletes a custom channel."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteCustomLineup",
+   "access": "write",
+   "reason": "Deletes a custom lineup."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteRecentRecording",
+   "access": "write",
+   "reason": "Deletes a recent recording record."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteRecordingJob",
+   "access": "write",
+   "reason": "Deletes a recording job."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteScheduledBlast",
+   "access": "write",
+   "reason": "Deletes a scheduled blast command."
+  },
+  {
+   "service": "Scheduler",
+   "method": "EditCustomChannel",
+   "access": "write",
+   "reason": "Edits a custom channel."
+  },
+  {
+   "service": "Scheduler",
+   "method": "EditRecordingJob",
+   "access": "write",
+   "reason": "Edits a recording job."
+  },
+  {
+   "service": "Scheduler",
+   "method": "EditRecordingJobs",
+   "access": "write",
+   "reason": "Bulk edits recording jobs."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ExtendCurrentRecording",
+   "access": "write",
+   "reason": "Changes the end time of an in-progress recording."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ExternalTuneCommand",
+   "access": "write",
+   "reason": "Sends a remote control command to an external tuner."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ExternalTuneWithChannel",
+   "access": "write",
+   "reason": "Sends a channel tune command to an external tuner."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ForceAiringRecording",
+   "access": "write",
+   "reason": "Forces an airing to record, overriding blocks or conflicts."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ForceManualRecording",
+   "access": "write",
+   "reason": "Forces a manual recording timeslot to record."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ForceRebuild",
+   "access": "write",
+   "reason": "Triggers a schedule rebuild."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiring",
+   "access": "read",
+   "reason": "Fetches one airing; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringAtChannelAndTime",
+   "access": "read",
+   "reason": "Looks up what airs on a channel at a given time; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringByTimeslot",
+   "access": "read",
+   "reason": "Looks up an airing by channel and start time; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringCount",
+   "access": "read",
+   "reason": "Counts airings matching filters; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAirings",
+   "access": "read",
+   "reason": "Pages airings by filters and sorts; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringsAtTime",
+   "access": "read",
+   "reason": "Looks up what airs on several channels at a given time; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringsByChannel",
+   "access": "read",
+   "reason": "Pages airings on a channel; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringsByChannelAndStartTimeRange",
+   "access": "read",
+   "reason": "Pages airings on a channel by start time range; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringsByChannelAndTimeRange",
+   "access": "read",
+   "reason": "Pages airings on a channel overlapping a time range; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringsById",
+   "access": "read",
+   "reason": "Fetches airings by ID list; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAiringsByStartTimeRange",
+   "access": "read",
+   "reason": "Pages airings by start time range; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAllAsRunEntries",
+   "access": "read",
+   "reason": "Returns as-run entries by filter, unpaged; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAllChannels",
+   "access": "read",
+   "reason": "Returns all channels at once; read-only (unpaged, can be large)."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAllTunerPartProperties",
+   "access": "read",
+   "reason": "Lists tuner part IDs, names and types; read-only (EditSettings)."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAsRunEntries",
+   "access": "read",
+   "reason": "Pages as-run log entries for an input; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetAsRunEntryCount",
+   "access": "read",
+   "reason": "Counts as-run log entries for an input; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCategories",
+   "access": "read",
+   "reason": "Lists TV categories; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannel",
+   "access": "read",
+   "reason": "Fetches one channel; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelCount",
+   "access": "read",
+   "reason": "Counts channels; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelGroup",
+   "access": "read",
+   "reason": "Fetches one channel group; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelGroupChannelCount",
+   "access": "read",
+   "reason": "Counts channels in a channel group; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelGroupChannels",
+   "access": "read",
+   "reason": "Lists channels in a channel group; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelGroups",
+   "access": "read",
+   "reason": "Lists channel groups; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannels",
+   "access": "read",
+   "reason": "Pages channels; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelsBeingStreamed",
+   "access": "read",
+   "reason": "Lists channels currently streamed; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetChannelsFromList",
+   "access": "read",
+   "reason": "Fetches channels by ID list; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentAndUpcomingRecordingCount",
+   "access": "read",
+   "reason": "Counts current and upcoming recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentAndUpcomingRecordingDuration",
+   "access": "read",
+   "reason": "Sums current and upcoming recording duration; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentAndUpcomingRecordings",
+   "access": "read",
+   "reason": "Pages current and upcoming recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentAndUpcomingRecordingsForGuide",
+   "access": "read",
+   "reason": "Lists recordings for given tuner parts in a time window; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentRecording",
+   "access": "read",
+   "reason": "Fetches the in-progress recording on a tuner; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentRecordingCount",
+   "access": "read",
+   "reason": "Counts in-progress recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetCurrentRecordings",
+   "access": "read",
+   "reason": "Pages in-progress recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetDataExtents",
+   "access": "read",
+   "reason": "Returns the program guide date range; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetEpisode",
+   "access": "read",
+   "reason": "Fetches one guide episode; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetEpisodeCount",
+   "access": "read",
+   "reason": "Counts guide episodes; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetEpisodes",
+   "access": "read",
+   "reason": "Pages guide episodes; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetExternalTunerProperties",
+   "access": "read",
+   "reason": "Returns external tuner properties; read-only (verify on first live read that no device credentials are included)."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetGlobalChannel",
+   "access": "read",
+   "reason": "Fetches a channel from a cluster endpoint by context ID; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetGlobalChannels",
+   "access": "read",
+   "reason": "Returns channels across the endpoint cluster; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetGlobalInput",
+   "access": "read",
+   "reason": "Looks up an input across the cluster; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetGlobalInputs",
+   "access": "read",
+   "reason": "Lists inputs across the cluster; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetImminentRecordings",
+   "access": "read",
+   "reason": "Lists recordings starting within 10 minutes on a Live TV session tuner; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLastRebuild",
+   "access": "read",
+   "reason": "Returns the last schedule build time; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineup",
+   "access": "read",
+   "reason": "Fetches one lineup by ID; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineupChannelCount",
+   "access": "read",
+   "reason": "Counts channels on a lineup; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineupChannelCountAsAdmin",
+   "access": "read",
+   "reason": "Admin variant of lineup channel count; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineupChannels",
+   "access": "read",
+   "reason": "Pages channels on a lineup; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineupChannelsAsAdmin",
+   "access": "read",
+   "reason": "Admin variant of lineup channel listing; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineupCount",
+   "access": "read",
+   "reason": "Counts lineups matching filters; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLineups",
+   "access": "read",
+   "reason": "Pages lineups matching filters; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveTvRecording",
+   "access": "read",
+   "reason": "Fetches the recording behind a Live TV session; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveTvSession",
+   "access": "read",
+   "reason": "Fetches one Live TV session; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveTvSessions",
+   "access": "read",
+   "reason": "Lists Live TV sessions; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetMovie",
+   "access": "read",
+   "reason": "Fetches one guide movie; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetMovieAirings",
+   "access": "read",
+   "reason": "Pages airings of a movie; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetMovieAiringsByChannel",
+   "access": "read",
+   "reason": "Pages airings of a movie on a channel; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetMovieCount",
+   "access": "read",
+   "reason": "Counts guide movies; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetMovies",
+   "access": "read",
+   "reason": "Pages guide movies; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetOriginalFolderPathId",
+   "access": "blocked",
+   "reason": "Internal plumbing: returns the folder path ID for the raw index file of a tuner part."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetOriginalIndexFileName",
+   "access": "blocked",
+   "reason": "Internal plumbing: returns the raw .ts index file path on disk for a tuner part, only useful with FileAccess byte streaming."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetOriginalIndexMachineId",
+   "access": "blocked",
+   "reason": "Internal plumbing: returns the machine ID holding the raw index file of a tuner part."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecentRecordingCount",
+   "access": "read",
+   "reason": "Counts recent (completed) recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecentRecordings",
+   "access": "read",
+   "reason": "Pages recent (completed) recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecording",
+   "access": "read",
+   "reason": "Fetches one recording; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecordingJob",
+   "access": "read",
+   "reason": "Fetches one recording job; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecordingJobCount",
+   "access": "read",
+   "reason": "Counts recording jobs; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecordingJobs",
+   "access": "read",
+   "reason": "Pages recording jobs; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetRecordingRtmpInfo",
+   "access": "blocked",
+   "reason": "Returns the RTMP ingest url and stream key; a stream key is a secret that lets anyone push video into a recording."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetScheduledBlasts",
+   "access": "read",
+   "reason": "Pages scheduled blast commands; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetSeries",
+   "access": "read",
+   "reason": "Pages guide series; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetSeriesAirings",
+   "access": "read",
+   "reason": "Pages airings of a series; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetSeriesAiringsByChannel",
+   "access": "read",
+   "reason": "Pages airings of a series on a channel; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetSeriesById",
+   "access": "read",
+   "reason": "Fetches one guide series; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetSeriesCount",
+   "access": "read",
+   "reason": "Counts guide series; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetStats",
+   "access": "read",
+   "reason": "Returns scheduler statistics; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetTotalRecordingDuration",
+   "access": "read",
+   "reason": "Sums recorded duration from the DB; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetUpcomingRecording",
+   "access": "read",
+   "reason": "Fetches one upcoming recording; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetUpcomingRecordingCount",
+   "access": "read",
+   "reason": "Counts upcoming recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetUpcomingRecordings",
+   "access": "read",
+   "reason": "Pages upcoming recordings; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetUpdateStatus",
+   "access": "read",
+   "reason": "Returns guide update status; read-only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "KeepAliveLiveTv",
+   "access": "write",
+   "reason": "Heartbeat that keeps a Live TV session and its tuner allocated."
+  },
+  {
+   "service": "Scheduler",
+   "method": "Record",
+   "access": "write",
+   "reason": "Schedules an arbitrary recording job."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordAiring",
+   "access": "write",
+   "reason": "Schedules a recording of one airing."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordBlockBased247",
+   "access": "write",
+   "reason": "Schedules 24/7 block-based recording of a channel."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordGuideData247",
+   "access": "write",
+   "reason": "Schedules 24/7 guide-based recording of a channel."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordManual",
+   "access": "write",
+   "reason": "Schedules a manual (time-based) recording, optionally removing old jobs."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordManualJob",
+   "access": "write",
+   "reason": "Schedules a manual recording with folder, live transcription and chapter options."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordMovieAiring",
+   "access": "write",
+   "reason": "Schedules recording of a movie airing."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordMovieWithin30Days",
+   "access": "write",
+   "reason": "Schedules recording of a movie within 30 days."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordSeriesAll",
+   "access": "write",
+   "reason": "Schedules recording of every airing of a series."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordSeriesFirstRun",
+   "access": "write",
+   "reason": "Schedules recording of first-run airings of a series."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordSeriesTimeslot",
+   "access": "write",
+   "reason": "Schedules a recurring timeslot recording of a series."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordSeriesTimeslotByAiring",
+   "access": "write",
+   "reason": "Schedules a recurring timeslot recording from an airing."
+  },
+  {
+   "service": "Scheduler",
+   "method": "RecordTimeBasedGuide",
+   "access": "write",
+   "reason": "Schedules a daily time-based guide recording of a channel."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ResetInput",
+   "access": "write",
+   "reason": "Resets an input, interrupting anything on it."
+  },
+  {
+   "service": "Scheduler",
+   "method": "ResetTuner",
+   "access": "write",
+   "reason": "Resets a tuner, interrupting anything on it."
+  },
+  {
+   "service": "Scheduler",
+   "method": "SaveScheduledBlast",
+   "access": "write",
+   "reason": "Creates or updates a scheduled remote blast command."
+  },
+  {
+   "service": "Scheduler",
+   "method": "StartLiveTv",
+   "access": "write",
+   "reason": "Starts a Live TV session, allocating a tuner."
+  },
+  {
+   "service": "Scheduler",
+   "method": "StartUpdate",
+   "access": "write",
+   "reason": "Starts a program guide update."
+  },
+  {
+   "service": "Scheduler",
+   "method": "StopLiveTv",
+   "access": "write",
+   "reason": "Stops a Live TV session."
+  },
+  {
+   "service": "Scheduler",
+   "method": "StopRecording",
+   "access": "write",
+   "reason": "Stops an in-progress recording."
+  },
+  {
+   "service": "Scheduler",
+   "method": "StopRecordingWithRestart",
+   "access": "write",
+   "reason": "Stops an in-progress recording and optionally restarts it from a new source URL."
+  },
+  {
+   "service": "Scheduler",
+   "method": "SwapSchedulerAndGuideUpdaterTables",
+   "access": "blocked",
+   "reason": "Internal plumbing: swaps guide updater tables into the live scheduler; guide updater use only."
+  },
+  {
+   "service": "Scheduler",
+   "method": "TouchLiveTvStreamJob",
+   "access": "write",
+   "reason": "Heartbeat that keeps a Live TV streaming job and its tuner allocated."
+  },
+  {
+   "service": "Scheduler",
+   "method": "TuneLiveTv",
+   "access": "write",
+   "reason": "Retunes a Live TV session, optionally forcing it."
+  },
+  {
+   "service": "Scheduler",
+   "method": "UnconfigureMasterTunerPart",
+   "access": "blocked",
+   "reason": "Internal cluster plumbing: unlocks a master tuner part when encoder integrated tuning is turned off."
+  },
+  {
+   "service": "TaskManager",
+   "method": "AddTaskAction",
+   "access": "write",
+   "reason": "Creates a task action."
+  },
+  {
+   "service": "TaskManager",
+   "method": "AddTaskFilterChain",
+   "access": "write",
+   "reason": "Creates a task filter chain."
+  },
+  {
+   "service": "TaskManager",
+   "method": "AddTaskRule",
+   "access": "write",
+   "reason": "Creates a task rule (automation)."
+  },
+  {
+   "service": "TaskManager",
+   "method": "AiClipDesigner",
+   "access": "write",
+   "reason": "Creates a task list that renders an AI-designed social clip."
+  },
+  {
+   "service": "TaskManager",
+   "method": "BatchRunTaskRule",
+   "access": "write",
+   "reason": "Runs a task rule's actions on multiple media items."
+  },
+  {
+   "service": "TaskManager",
+   "method": "BatchShareClip",
+   "access": "write",
+   "reason": "Shares a batch of clips via SnapStream cloud; external send."
+  },
+  {
+   "service": "TaskManager",
+   "method": "BatchShowSqueeze",
+   "access": "write",
+   "reason": "Creates ShowSqueeze transcode task lists for multiple media items."
+  },
+  {
+   "service": "TaskManager",
+   "method": "BatchUploadClipsToYouTube",
+   "access": "write",
+   "reason": "Uploads a batch of clips to YouTube."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipAndBlueskyPost",
+   "access": "write",
+   "reason": "Clips and posts to Bluesky; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipAndFacebookPost",
+   "access": "write",
+   "reason": "Clips and posts to Facebook; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipAndSlack",
+   "access": "write",
+   "reason": "Clips and posts video to Slack; external message."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipAndSlackGIF",
+   "access": "write",
+   "reason": "Clips and posts a GIF to Slack; external message."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipAndTweet",
+   "access": "write",
+   "reason": "Clips and posts to Twitter/X; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipAndUpload",
+   "access": "write",
+   "reason": "Clips and uploads to YouTube; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ClipFile",
+   "access": "write",
+   "reason": "Creates a task list that renders a new clip file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "CopyFile",
+   "access": "write",
+   "reason": "Creates a task list that copies a file to another folder."
+  },
+  {
+   "service": "TaskManager",
+   "method": "CreateGifFromExistingClip",
+   "access": "write",
+   "reason": "Creates a task list that renders a GIF."
+  },
+  {
+   "service": "TaskManager",
+   "method": "CreateScreenshot",
+   "access": "write",
+   "reason": "Creates a task list that renders a screenshot file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteFailedTaskLists",
+   "access": "write",
+   "reason": "Bulk deletes all failed task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteFile",
+   "access": "write",
+   "reason": "Creates a task list that deletes a file; destructive."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteSuccessfulTaskLists",
+   "access": "write",
+   "reason": "Bulk deletes all completed task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteTaskAction",
+   "access": "write",
+   "reason": "Deletes a task action."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteTaskFilterChain",
+   "access": "write",
+   "reason": "Deletes a task filter chain."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteTaskList",
+   "access": "write",
+   "reason": "Deletes a task list."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DeleteTaskRule",
+   "access": "write",
+   "reason": "Deletes a task rule."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DesignExistingClip",
+   "access": "write",
+   "reason": "Creates a new Create for Social clip from a library clip."
+  },
+  {
+   "service": "TaskManager",
+   "method": "DetectCommercials",
+   "access": "write",
+   "reason": "Starts commercial detection processing on a file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "EmailClip",
+   "access": "write",
+   "reason": "Emails a clip, transcoding if needed; external message."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ExportFile",
+   "access": "write",
+   "reason": "Exports a file to an export destination."
+  },
+  {
+   "service": "TaskManager",
+   "method": "FederatedDownload",
+   "access": "write",
+   "reason": "Triggers a federated download from S3 into this instance."
+  },
+  {
+   "service": "TaskManager",
+   "method": "FederatedPlaylistDownload",
+   "access": "write",
+   "reason": "Downloads remote playlist content and adds it to a Library playlist."
+  },
+  {
+   "service": "TaskManager",
+   "method": "FederatedPlaylistUpload",
+   "access": "write",
+   "reason": "Triggers a federated playlist transfer."
+  },
+  {
+   "service": "TaskManager",
+   "method": "FederatedUpload",
+   "access": "write",
+   "reason": "Triggers an upload to S3 for federated download."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetBlueskyAccount",
+   "access": "blocked",
+   "reason": "Returns a Bluesky integration account; fail closed on possible app password or session token."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetBlueskyAccountAsAdmin",
+   "access": "blocked",
+   "reason": "Admin read of a Bluesky integration account; fail closed on possible credentials."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetBlueskyAccounts",
+   "access": "blocked",
+   "reason": "Lists Bluesky integration accounts; fail closed on possible credentials."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetBlueskyAccountsAsAdmin",
+   "access": "blocked",
+   "reason": "Admin list of Bluesky integration accounts; fail closed on possible credentials."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetCompletedTaskListCount",
+   "access": "read",
+   "reason": "Returns the completed task list count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetCompletedTaskLists",
+   "access": "read",
+   "reason": "Paged list of completed task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetEnabledTaskRules",
+   "access": "read",
+   "reason": "Lists enabled task rules; config read only."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetFacebookAccount",
+   "access": "blocked",
+   "reason": "Returns a Facebook integration account; fail closed on possible page access tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetFacebookAccountAsAdmin",
+   "access": "blocked",
+   "reason": "Admin read of a Facebook integration account; fail closed on possible access tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetFacebookAccounts",
+   "access": "blocked",
+   "reason": "Lists Facebook integration accounts; fail closed on possible access tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetFacebookAccountsAsAdmin",
+   "access": "blocked",
+   "reason": "Admin list of Facebook integration accounts; fail closed on possible access tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetMyCompletedTaskListCount",
+   "access": "read",
+   "reason": "Returns the caller's completed task list count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetMyCompletedTaskLists",
+   "access": "read",
+   "reason": "Paged list of the caller's completed task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetMyPendingTaskListCount",
+   "access": "read",
+   "reason": "Returns the caller's pending task list count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetMyPendingTaskLists",
+   "access": "read",
+   "reason": "Paged list of the caller's pending task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetMyTaskListCount",
+   "access": "read",
+   "reason": "Returns the caller's filtered task list count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetMyTaskLists",
+   "access": "read",
+   "reason": "Paged list of the caller's task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetPendingTaskListCount",
+   "access": "read",
+   "reason": "Returns the pending task list count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetPendingTaskLists",
+   "access": "read",
+   "reason": "Paged list of pending task lists."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetPendingTaskPriorityCounts",
+   "access": "read",
+   "reason": "Returns pending task counts by priority."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetSlackAccount",
+   "access": "blocked",
+   "reason": "Returns a Slack integration account; fail closed on possible bot token or webhook URL."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetSlackAccountAsAdmin",
+   "access": "blocked",
+   "reason": "Admin read of a Slack integration account; fail closed on possible bot token or webhook URL."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetSlackAccounts",
+   "access": "blocked",
+   "reason": "Lists Slack integration accounts; fail closed on possible bot tokens or webhook URLs."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetSlackAccountsAsAdmin",
+   "access": "blocked",
+   "reason": "Admin list of Slack integration accounts; fail closed on possible tokens or webhook URLs."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTask",
+   "access": "read",
+   "reason": "Returns one task by id."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskAction",
+   "access": "read",
+   "reason": "Returns one task action (redact credential-like fields defensively)."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskActions",
+   "access": "read",
+   "reason": "Lists task actions; config read only (redact credential-like fields defensively)."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskCount",
+   "access": "read",
+   "reason": "Returns the task count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskFilterChain",
+   "access": "read",
+   "reason": "Returns one task filter chain."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskFilterChains",
+   "access": "read",
+   "reason": "Lists task filter chains; config read only."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskList",
+   "access": "read",
+   "reason": "Returns one task list by id (job status polling)."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskListCount",
+   "access": "read",
+   "reason": "Returns a filtered task list count."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskLists",
+   "access": "read",
+   "reason": "Paged list of task lists with filters and sorts."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskProgress",
+   "access": "read",
+   "reason": "Returns progress percent for one task."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskRule",
+   "access": "read",
+   "reason": "Returns one task rule."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskRuleAsAdmin",
+   "access": "read",
+   "reason": "Returns one task rule, admin scope."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskRules",
+   "access": "read",
+   "reason": "Lists all task rules; config read only."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTaskRulesAsAdmin",
+   "access": "read",
+   "reason": "Lists all task rules including hidden; config read only."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTasks",
+   "access": "read",
+   "reason": "Paged list of tasks."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTwitterAccount",
+   "access": "blocked",
+   "reason": "Returns a Twitter integration account object; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTwitterAccountAsAdmin",
+   "access": "blocked",
+   "reason": "Admin read of a Twitter integration account; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTwitterAccountByTwitterId",
+   "access": "blocked",
+   "reason": "Admin lookup of a Twitter integration account; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTwitterAccounts",
+   "access": "blocked",
+   "reason": "Lists Twitter integration accounts; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetTwitterAccountsAsAdmin",
+   "access": "blocked",
+   "reason": "Admin list of Twitter integration accounts; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetYouTubeAccount",
+   "access": "blocked",
+   "reason": "Returns a YouTube integration account; fail closed on possible OAuth refresh tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetYouTubeAccountAsAdmin",
+   "access": "blocked",
+   "reason": "Admin read of a YouTube integration account; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetYouTubeAccounts",
+   "access": "blocked",
+   "reason": "Lists YouTube integration accounts; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "GetYouTubeAccountsAsAdmin",
+   "access": "blocked",
+   "reason": "Admin list of YouTube integration accounts; fail closed on possible OAuth tokens."
+  },
+  {
+   "service": "TaskManager",
+   "method": "MergeFiles",
+   "access": "write",
+   "reason": "Merges files into a new output file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "MoveFile",
+   "access": "write",
+   "reason": "Creates a task list that moves a file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "PostClipToFacebook",
+   "access": "write",
+   "reason": "Posts a clip to a Facebook Page."
+  },
+  {
+   "service": "TaskManager",
+   "method": "PostExistingClipToBluesky",
+   "access": "write",
+   "reason": "Posts an existing clip to Bluesky; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "PostExistingMoment",
+   "access": "write",
+   "reason": "Posts an existing moment to social platforms."
+  },
+  {
+   "service": "TaskManager",
+   "method": "RemuxFile",
+   "access": "write",
+   "reason": "Remuxes TS to MP4 and can add it to the Library."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ResetTaskList",
+   "access": "write",
+   "reason": "Resets a task list so it reruns from the start."
+  },
+  {
+   "service": "TaskManager",
+   "method": "RunTaskRule",
+   "access": "write",
+   "reason": "Runs a task rule's actions on a media item."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SaveTaskAction",
+   "access": "write",
+   "reason": "Edits a task action."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SaveTaskFilterChain",
+   "access": "write",
+   "reason": "Edits a task filter chain."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SaveTaskRule",
+   "access": "write",
+   "reason": "Edits a task rule (automation)."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ShareClip",
+   "access": "write",
+   "reason": "Shares a clip via SnapStream cloud; external send."
+  },
+  {
+   "service": "TaskManager",
+   "method": "ShowSqueezeFile",
+   "access": "write",
+   "reason": "Creates a task list that transcodes a file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SlackClip",
+   "access": "write",
+   "reason": "Posts a clip to Slack."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SlackClipAsGIF",
+   "access": "write",
+   "reason": "Posts a clip as GIF to Slack."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SlackExistingGIF",
+   "access": "write",
+   "reason": "Posts an existing GIF to Slack."
+  },
+  {
+   "service": "TaskManager",
+   "method": "SlackImage",
+   "access": "write",
+   "reason": "Posts an image to Slack."
+  },
+  {
+   "service": "TaskManager",
+   "method": "StopTask",
+   "access": "write",
+   "reason": "Stops a running task."
+  },
+  {
+   "service": "TaskManager",
+   "method": "StreamToFacebookLive",
+   "access": "write",
+   "reason": "Starts a Facebook Live stream; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "StreamToYouTubeLive",
+   "access": "write",
+   "reason": "Starts a live stream to YouTube; external publish."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TagFile",
+   "access": "write",
+   "reason": "Tags a file and can add it to the Library."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TaskRunning",
+   "access": "read",
+   "reason": "Returns whether one task is running; no side effects."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TasksRunning",
+   "access": "read",
+   "reason": "Returns whether any task is running; no side effects."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TranscribeRecording",
+   "access": "write",
+   "reason": "Starts transcription and writes an .srt file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TrimFile",
+   "access": "write",
+   "reason": "Creates a task list that trims (modifies) a file."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TweetClip",
+   "access": "write",
+   "reason": "Posts a clip to Twitter/X."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TweetClipAsGIF",
+   "access": "write",
+   "reason": "Posts a clip as GIF to Twitter/X."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TweetExistingGIF",
+   "access": "write",
+   "reason": "Posts an existing GIF to Twitter/X."
+  },
+  {
+   "service": "TaskManager",
+   "method": "TweetScreenshot",
+   "access": "write",
+   "reason": "Posts a screenshot to Twitter/X."
+  },
+  {
+   "service": "TaskManager",
+   "method": "UpdateDesign",
+   "access": "write",
+   "reason": "Re-renders an existing Create for Social clip."
+  },
+  {
+   "service": "TaskManager",
+   "method": "UploadClip",
+   "access": "write",
+   "reason": "Uploads a clip to an external site."
+  }
+ ]
+}
