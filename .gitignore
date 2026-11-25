@@ -19,3 +19,9 @@ venv/
 *.egg-info/
 build/
 dist/
+
+# Local API call counter (UTC day)
+snapstream_calls.daily.json
+
+# Live integration test reports (method outcomes only, no response bodies)
+live_reports/
