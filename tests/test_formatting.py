@@ -177,3 +177,60 @@ def test_strict_write_method_pattern():
         assert P.search(m), m
     for m in ("SaveBookmark", "RecordAiring", "ClipFile"):
         assert not P.search(m), m
+
+
+# ------------------------------------------------------------------- ticks
+from snapstream_mcp.formatting import (  # noqa: E402
+    TICKS_PER_SECOND,
+    parse_clip_time,
+    seconds_to_ticks,
+    ticks_to_seconds,
+)
+
+
+def test_tick_helpers():
+    assert TICKS_PER_SECOND == 10_000_000
+    assert seconds_to_ticks(62) == 620_000_000
+    assert seconds_to_ticks(75.5) == 755_000_000
+    assert seconds_to_ticks(0.0000001) == 1
+    assert ticks_to_seconds(755_000_000) == 75.5
+    assert ticks_to_seconds(18_123_456_789) == 1812.346
+    assert ticks_to_seconds(seconds_to_ticks(3599.999)) == 3599.999
+
+
+@pytest.mark.parametrize("value,seconds", [
+    (62, 62.0), (62.5, 62.5), ("62.5", 62.5), ("00:01:02", 62.0), ("1:02", 62.0), ("01:01:02.250", 3662.25),
+    ("ms:62000", 62.0), ("MS: 1500", 1.5), (0, 0.0),
+])
+def test_parse_clip_time(value, seconds):
+    assert parse_clip_time(value) == pytest.approx(seconds)
+
+
+@pytest.mark.parametrize("bad", ["abc", "ms:x", "00:61:00", -1, True, None, [], "1:2:3:4"])
+def test_parse_clip_time_rejects(bad):
+    with pytest.raises(ValueError):
+        parse_clip_time(bad)
+
+
+def test_normalize_adds_seconds_for_tick_fields():
+    data = {"StartPosition": 620_000_000, "EndPosition": 755_000_000, "Tags": [{"StartTicks": 25_000_000, "Name": "x"}],
+            "Start": 600_000_000, "TimeoutTicks": True}
+    out = normalize(data)
+    assert out["StartPosition_seconds"] == 62.0 and out["EndPosition_seconds"] == 75.5
+    assert out["Tags"][0]["StartTicks_seconds"] == 2.5
+    assert "Start_seconds" not in out  # Start is a tick field only when the caller says so
+    assert "TimeoutTicks_seconds" not in out  # booleans are not ticks
+    chapters = normalize([{"Start": 0, "End": 6_000_000_000}], tick_keys={"Start", "End"})
+    assert chapters == [{"Start": 0, "Start_seconds": 0.0, "End": 6_000_000_000, "End_seconds": 600.0}]
+    # An existing sibling is never overwritten.
+    assert normalize({"StartPosition": 10_000_000, "StartPosition_seconds": 99})["StartPosition_seconds"] == 99
+    out = format_response({"GetSmartChaptersResult": [{"Start": 10_000_000}]}, "GetSmartChapters",
+                          max_chars=10_000, tick_keys={"Start"})
+    assert out["result"] == [{"Start": 10_000_000, "Start_seconds": 1.0}]
+
+
+def test_seconds_to_clock_fraction():
+    assert seconds_to_clock(75.5, fraction=True) == "00:01:15.500"
+    assert seconds_to_clock(62, fraction=True) == "00:01:02"
+    assert seconds_to_clock(3662.25) == "01:01:02"
+    assert seconds_to_clock(0.0004, fraction=True) == "00:00:00"

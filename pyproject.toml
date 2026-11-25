@@ -26,3 +26,4 @@ snapstream_mcp = ["data/*.json"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["live_write: live suite write tier; needs --live and --live-writes"]

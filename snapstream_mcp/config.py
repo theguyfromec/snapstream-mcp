@@ -49,26 +49,56 @@ def _env_int(name: str, default: int, minimum: int) -> int:
         raise ConfigError(f"Environment variable {name} must be an integer.") from None
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    if raw in ("1", "on", "true", "yes"):
+        return True
+    if raw in ("0", "off", "false", "no"):
+        return False
+    raise ConfigError(f"Environment variable {name} must be on or off.")
+
+
+# The API gateway gives up after 29 s, so the client timeout stays under it.
+DEFAULT_TIMEOUT = 28.0
+CALL_COUNTER_NAME = "snapstream_calls.daily.json"
+
+
 @dataclass(frozen=True)
 class Settings:
     """Runtime limits. Each can be overridden by an environment variable."""
 
-    timeout_seconds: float = 30.0          # SNAPSTREAM_MCP_TIMEOUT
+    timeout_seconds: float = DEFAULT_TIMEOUT  # SNAPSTREAM_MCP_TIMEOUT
     max_concurrency: int = 4               # SNAPSTREAM_MCP_MAX_CONCURRENCY
     write_min_interval: float = 5.0        # SNAPSTREAM_MCP_WRITE_MIN_INTERVAL (seconds between write calls)
     max_response_chars: int = 40000        # SNAPSTREAM_MCP_MAX_RESPONSE_CHARS
     stage_ttl_seconds: int = 600           # fixed: staged writes expire after 10 minutes
     audit_file: Path = PROJECT_DIR / "snapstream_writes.audit.jsonl"  # SNAPSTREAM_MCP_AUDIT_FILE
+    empty_auth_ticket: bool = True         # SNAPSTREAM_MCP_EMPTY_AUTH_TICKET (on|off)
+    rate_per_sec: float = 8.0              # SNAPSTREAM_MCP_RATE_PER_SEC (token bucket refill, all calls)
+    burst: int = 16                        # SNAPSTREAM_MCP_BURST (token bucket size)
+    daily_budget: int = 20000              # SNAPSTREAM_MCP_DAILY_BUDGET (soft cap on API calls per UTC day)
+    read_attempts: int = 3                 # fixed: a read is tried at most 3 times on 429/503
+
+    @property
+    def call_counter_file(self) -> Path:
+        """The UTC-day call counter, kept beside the audit file."""
+        return self.audit_file.with_name(CALL_COUNTER_NAME)
 
     @classmethod
     def from_env(cls) -> "Settings":
         audit = os.environ.get("SNAPSTREAM_MCP_AUDIT_FILE", "").strip()
         return cls(
-            timeout_seconds=_env_float("SNAPSTREAM_MCP_TIMEOUT", 30.0, 1.0),
+            timeout_seconds=_env_float("SNAPSTREAM_MCP_TIMEOUT", DEFAULT_TIMEOUT, 1.0),
             max_concurrency=_env_int("SNAPSTREAM_MCP_MAX_CONCURRENCY", 4, 1),
             write_min_interval=_env_float("SNAPSTREAM_MCP_WRITE_MIN_INTERVAL", 5.0, 0.0),
             max_response_chars=_env_int("SNAPSTREAM_MCP_MAX_RESPONSE_CHARS", 40000, 2000),
             audit_file=Path(audit) if audit else PROJECT_DIR / "snapstream_writes.audit.jsonl",
+            empty_auth_ticket=_env_bool("SNAPSTREAM_MCP_EMPTY_AUTH_TICKET", True),
+            rate_per_sec=_env_float("SNAPSTREAM_MCP_RATE_PER_SEC", 8.0, 0.1),
+            burst=_env_int("SNAPSTREAM_MCP_BURST", 16, 1),
+            daily_budget=_env_int("SNAPSTREAM_MCP_DAILY_BUDGET", 20000, 1),
         )
 
 

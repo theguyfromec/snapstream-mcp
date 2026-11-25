@@ -26,6 +26,22 @@ FAKE_API_KEY = "fake-api-key-L0p7Kd52"
 BASE_URL = "https://api.example.test/v1"
 TOKEN_URL = "https://auth.example.test/oauth2/token"
 
+ITEM_ID = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+CHANNEL_ID = "11111111-2222-3333-4444-555555555555"
+FOLDER_PATH_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+FOLDER_ID = "99999999-8888-7777-6666-555555555555"
+# A media item the default GetMediaItem route returns (an hour-long recording).
+MEDIA_ITEM = {
+    "Id": ITEM_ID,
+    "Title": "Evening News",
+    "ChannelId": CHANNEL_ID,
+    "ContextId": "00000000-0000-0000-0000-000000000000",
+    "FolderPathId": FOLDER_PATH_ID,
+    "FolderId": FOLDER_ID,
+    "Filename": "evening-news.mpg",
+    "Duration": "PT1H",
+}
+
 
 def run(coro):
     return asyncio.run(coro)
@@ -57,12 +73,21 @@ class MockApi:
         self.expires_in = 3600
         self.token_status = 200
         self.token_body: Optional[str] = None
-        self.routes: Dict[Tuple[str, str], Any] = {}
+        # GetMediaItem answers by default: the transcript and smart-chapter permission guard calls it.
+        self.routes: Dict[Tuple[str, str], Any] = {("Library", "GetMediaItem"): {"GetMediaItemResult": dict(MEDIA_ITEM)}}
         self.fail_next_401 = 0
 
     @property
     def api_requests(self) -> List[httpx.Request]:
         return [r for r in self.requests if r.url.host == "api.example.test"]
+
+    def paths(self) -> List[str]:
+        """'Service/Method' (the URL path segments) of every API request, in order."""
+        out = []
+        for r in self.api_requests:
+            parts = r.url.path.strip("/").split("/")
+            out.append(f"{parts[-3]}/{parts[-1]}")
+        return out
 
     def bodies(self) -> List[Dict[str, Any]]:
         return [json.loads(r.content or b"{}") for r in self.api_requests]
@@ -96,12 +121,16 @@ class MockApi:
 
 @pytest.fixture(autouse=True)
 def _offline_guard(monkeypatch, tmp_path):
-    """Never let a test read the real secrets.yaml (and so never reach the real API)."""
+    """Never let a test read the real secrets.yaml (and so never reach the real API), and never let
+    one write the call counter or audit log into the repo."""
     monkeypatch.setenv("SNAPSTREAM_MCP_SECRETS", str(tmp_path / "no-such-secrets.yaml"))
     monkeypatch.setenv("SNAPSTREAM_MCP_AUDIT_FILE", str(tmp_path / "guard.audit.jsonl"))
+    repo_counter = Settings().call_counter_file
+    existed = repo_counter.exists()
     server.set_runtime(None)
     yield
     server.set_runtime(None)
+    assert existed or not repo_counter.exists(), "a test wrote the daily call counter into the repo"
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
-"""The method catalog: every SnapStream API method with its parameters and access class.
+"""The method catalog: every SnapStream API method with its parameters and access class, plus a
+trimmed copy of the OpenAPI component schemas.
 
 Access classes:
   read     safe to call through ss_call_read and the curated tools
@@ -6,6 +7,10 @@ Access classes:
   blocked  never callable (returns secrets, handles credentials, or is internal plumbing)
 
 Anything unknown or malformed is treated as write (fail closed). Unknown methods are refused.
+
+Services keep their display names (Configuration, LocalConfiguration, NotifierManager, ...) and
+carry url_path, the gateway path segment (Config, LocalConfig, Notifier). Either name is accepted
+wherever a service is passed in.
 """
 
 from __future__ import annotations
@@ -15,10 +20,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .formatting import is_guid, to_wcf_date
+from .formatting import TICKS_PER_SECOND, is_guid, seconds_to_clock, to_wcf_date
 
 DATA_FILE = Path(__file__).resolve().parent / "data" / "api_catalog.json"
 VALID_ACCESS = ("read", "write", "blocked")
+VALID_AUTH_TICKET = ("omit", "empty_object")
+TYPE_HINT_KEY = "__type"
+MAX_NESTED_DEPTH = 4
+
+# ClipPropertiesType values that act on an existing clip (no source positions needed) and the
+# single-frame screenshot type.
+EXISTING_CLIP_TYPES = (3, 8, 10)
+CREATE_IMAGE_TYPE = 12
+EXISTING_CLIP_METHODS = ("CreateGifFromExistingClip", "DesignExistingClip", "UpdateDesign", "BatchShareClip")
 
 
 @dataclass(frozen=True)
@@ -33,11 +47,22 @@ class MethodInfo:
     access: str
     access_reason: str
     note: str = ""
-    auth_ticket: str = "auto_resolved"
+    auth_ticket: str = "omit"
+    url_path: str = ""
+    read_only: Optional[bool] = None
+    valid_ticket_only: bool = False
+    details: str = ""
+    ui_name: str = ""
+    not_in_spec: bool = False
 
     @property
     def key(self) -> str:
         return f"{self.service}/{self.name}"
+
+    @property
+    def path(self) -> str:
+        """The gateway path segment the client posts to."""
+        return self.url_path or self.service
 
     @property
     def param_names(self) -> List[str]:
@@ -53,7 +78,7 @@ class MethodInfo:
         return "index" in names and "count" in names
 
     def brief(self) -> Dict[str, Any]:
-        return {
+        out = {
             "service": self.service,
             "method": self.name,
             "access": self.access,
@@ -61,16 +86,25 @@ class MethodInfo:
             "params": [f"{n}: {t}" for n, t in self.params],
             "returns": self.returns,
         }
+        if self.ui_name:
+            out["ui_name"] = self.ui_name
+        return out
 
     def full(self) -> Dict[str, Any]:
         out = {
             "service": self.service,
+            "url_path": self.path,
             "method": self.name,
             "summary": self.summary,
             "access": self.access,
             "access_reason": self.access_reason,
             "params": [{"name": n, "type": t} for n, t in self.params],
-            "auth_ticket": "omitted automatically (resolved by the gateway)" if self.auth_ticket == "auto_resolved" else "not applicable",
+            "auth_ticket": (
+                'sent as "authTicket": {} (permission depends on the input; the gateway needs the stub on '
+                "older builds; SNAPSTREAM_MCP_EMPTY_AUTH_TICKET=off disables it). Any caller value is removed."
+                if self.auth_ticket == "empty_object"
+                else "omitted (the gateway resolves the session from the client_id). Any caller value is removed."
+            ),
             "permissions": list(self.perms),
             "features": list(self.features),
             "returns": self.returns,
@@ -82,8 +116,22 @@ class MethodInfo:
                 "blocked": "Not callable through this server.",
             }[self.access],
         }
+        if self.read_only is not None:
+            out["spec_read_only"] = self.read_only
+        if self.valid_ticket_only:
+            out["valid_ticket_only"] = True
+            out["valid_ticket_note"] = (
+                "Guarded by ValidTicket alone: known gateway limitation on builds without the SCRUM-7181 fix, "
+                "so the call can fail over the gateway."
+            )
         if self.note:
             out["note"] = self.note
+        if self.details:
+            out["details"] = self.details
+        if self.ui_name:
+            out["ui_name"] = self.ui_name
+        if self.not_in_spec:
+            out["not_in_spec"] = True
         return out
 
 
@@ -114,18 +162,43 @@ def example_params(info: MethodInfo) -> Dict[str, Any]:
     return ex
 
 
+def _bare(typ: str) -> Tuple[str, int]:
+    """'TimeCodedTag[]' -> ('TimeCodedTag', 1)."""
+    n = 0
+    while typ.endswith("[]"):
+        typ = typ[:-2]
+        n += 1
+    return typ, n
+
+
 class Catalog:
     def __init__(self, data: Dict[str, Any]) -> None:
         self.raw = data
         self.services: List[Dict[str, Any]] = list(data.get("services", []))
+        self.schemas: Dict[str, Dict[str, Any]] = dict(data.get("schemas") or {})
+        self.tick_fields = frozenset(data.get("tick_fields") or ())
+        # service alias (display name or url_path, lower case) -> display name
+        self._svc_alias: Dict[str, str] = {}
+        self._svc_path: Dict[str, str] = {}
+        for s in self.services:
+            name = s.get("service", "")
+            path = s.get("url_path") or name
+            self._svc_path[name] = path
+            self._svc_alias[name.lower()] = name
+            self._svc_alias[path.lower()] = name
         self._methods: Dict[Tuple[str, str], MethodInfo] = {}
         self._lower: Dict[Tuple[str, str], Tuple[str, str]] = {}
         for m in data.get("methods", []):
             access = m.get("access")
             if access not in VALID_ACCESS:
                 access = "write"  # fail closed on a missing or unknown value
+            auth = m.get("auth_ticket")
+            if auth not in VALID_AUTH_TICKET:
+                auth = "omit"
+            svc = m["service"]
+            self._svc_alias.setdefault(svc.lower(), svc)
             info = MethodInfo(
-                service=m["service"],
+                service=svc,
                 name=m["name"],
                 summary=m.get("summary", ""),
                 params=tuple((p["name"], p["type"]) for p in m.get("params", [])),
@@ -135,7 +208,13 @@ class Catalog:
                 access=access,
                 access_reason=m.get("access_reason", ""),
                 note=m.get("note", ""),
-                auth_ticket=m.get("auth_ticket", "auto_resolved"),
+                auth_ticket=auth,
+                url_path=self._svc_path.get(svc, svc),
+                read_only=m.get("read_only"),
+                valid_ticket_only=bool(m.get("valid_ticket_only", False)),
+                details=m.get("details", ""),
+                ui_name=m.get("ui_name", ""),
+                not_in_spec=bool(m.get("not_in_spec", False)),
             )
             key = (info.service, info.name)
             self._methods[key] = info
@@ -152,10 +231,20 @@ class Catalog:
     def all(self) -> List[MethodInfo]:
         return list(self._methods.values())
 
+    # ------------------------------------------------------------- services
+    def resolve_service(self, service: str) -> Optional[str]:
+        """Display name for a display name or url_path (case-insensitive); None when unknown."""
+        return self._svc_alias.get((service or "").strip().lower())
+
+    def url_path(self, service: str) -> str:
+        name = self.resolve_service(service) or service
+        return self._svc_path.get(name, name)
+
     def get(self, service: str, method: str) -> Optional[MethodInfo]:
-        info = self._methods.get((service, method))
+        svc = self.resolve_service(service) or service
+        info = self._methods.get((svc, method))
         if info is None:
-            key = self._lower.get(((service or "").lower(), (method or "").lower()))
+            key = self._lower.get(((svc or "").lower(), (method or "").lower()))
             info = self._methods.get(key) if key else None
         return info
 
@@ -174,7 +263,7 @@ class Catalog:
 
     def search(self, query: str = "", service: str = "", access: str = "", limit: int = 50) -> List[MethodInfo]:
         words = [w.lower() for w in (query or "").split() if w]
-        svc = (service or "").lower()
+        svc = (self.resolve_service(service) or service or "").lower()
         acc = (access or "").lower()
         out: List[MethodInfo] = []
         for m in self._methods.values():
@@ -183,7 +272,9 @@ class Catalog:
             if acc and m.access != acc:
                 continue
             if words:
-                hay = " ".join([m.service, m.name, m.summary, m.returns, " ".join(f"{n} {t}" for n, t in m.params)]).lower()
+                hay = " ".join(
+                    [m.service, m.path, m.name, m.summary, m.returns, m.ui_name, " ".join(f"{n} {t}" for n, t in m.params)]
+                ).lower()
                 if not all(w in hay for w in words):
                     continue
             out.append(m)
@@ -195,10 +286,136 @@ class Catalog:
         needle = (method or "").lower()
         hits = [m.key for m in self._methods.values() if needle and (needle in m.name.lower() or m.name.lower() in needle)]
         if not hits and service:
-            hits = [m.key for m in self._methods.values() if m.service.lower() == service.lower()][:limit]
+            svc = (self.resolve_service(service) or service).lower()
+            hits = [m.key for m in self._methods.values() if m.service.lower() == svc][:limit]
         return sorted(hits)[:limit]
 
+    # -------------------------------------------------------------- schemas
+    def schema(self, name: str) -> Optional[Dict[str, Any]]:
+        return self.schemas.get(name)
 
+    def ancestors(self, name: str) -> List[str]:
+        chain: List[str] = []
+        cur = name
+        while cur and cur in self.schemas and cur not in chain:
+            chain.append(cur)
+            cur = self.schemas[cur].get("base", "")
+        return chain
+
+    def fields(self, name: str) -> Dict[str, Dict[str, Any]]:
+        """Every property of an object schema, inherited ones included (base first)."""
+        out: Dict[str, Dict[str, Any]] = {}
+        for n in reversed(self.ancestors(name)):
+            out.update(self.schemas[n].get("properties") or {})
+        return out
+
+    def subtypes(self, name: str) -> List[str]:
+        return sorted(
+            n for n, s in self.schemas.items()
+            if n != name and s.get("type_hint") and name in self.ancestors(n)
+        )
+
+    def enum_values(self, typ: str) -> Optional[Dict[str, int]]:
+        s = self.schemas.get(_bare(typ)[0])
+        if s and s.get("kind") in ("enum", "flags"):
+            return dict(s.get("values") or {})
+        return None
+
+    def describe_type(self, typ: str) -> Optional[Dict[str, Any]]:
+        """A complex or enum type resolved one level: its fields with type, description and, for
+        enum-typed fields, the name -> value map. None for scalars and unknown names."""
+        base, depth = _bare(typ)
+        s = self.schemas.get(base)
+        if not s:
+            return None
+        out: Dict[str, Any] = {"type": typ}
+        if depth:
+            out["list_of"] = base
+        if s.get("description"):
+            out["description"] = s["description"]
+        kind = s.get("kind")
+        if kind in ("enum", "flags"):
+            out["kind"] = kind
+            out["values"] = dict(s.get("values") or {})
+            if kind == "flags":
+                out["note"] = "Bit flags: send the integer sum of the members you want."
+            return out
+        if kind != "object":
+            return out if kind else None
+        out["kind"] = "object"
+        if s.get("required"):
+            out["required"] = list(s["required"])
+        if s.get("type_hint"):
+            out["type_hint"] = s["type_hint"]
+        fields: Dict[str, Any] = {}
+        for fname, f in self.fields(base).items():
+            entry = {k: v for k, v in f.items() if k in ("type", "description", "status")}
+            ev = self.enum_values(f.get("type", ""))
+            if ev is not None:
+                entry["values"] = ev
+            fields[fname] = entry
+        out["fields"] = fields
+        subs = self.subtypes(base)
+        if subs:
+            out["subtypes"] = subs[:40]
+            out["subtype_note"] = (
+                'To send a subtype, put "__type": "<Subtype>:#SnapStream.Services" first in the object.'
+            )
+        out["field_names_are_case_sensitive"] = True
+        return out
+
+    # ----------------------------------------------------------- validation
+    def validate_nested(self, typ: str, value: Any, path: str, depth: int = 0) -> List[str]:
+        """Check the keys of a complex value against its schema. Returns problems (empty when
+        fine): unknown keys, and case-only mismatches with a 'did you mean'. __type is allowed and
+        selects the subtype whose fields are then allowed. Nothing is auto-corrected."""
+        if value is None or depth > MAX_NESTED_DEPTH:
+            return []
+        base, lists = _bare(typ)
+        if lists:
+            if not isinstance(value, list):
+                return []
+            problems: List[str] = []
+            elem = base + "[]" * (lists - 1)
+            for i, v in enumerate(value):
+                problems += self.validate_nested(elem, v, f"{path}[{i}]", depth + 1)
+            return problems
+        s = self.schemas.get(base)
+        if not s or s.get("kind") != "object" or not isinstance(value, dict):
+            return []
+        target = base
+        problems = []
+        hint = value.get(TYPE_HINT_KEY)
+        if hint is not None:
+            sub = str(hint).split(":", 1)[0]
+            if sub in self.schemas and base in self.ancestors(sub):
+                target = sub
+            elif sub != base:
+                problems.append(f"{path}.__type {hint!r} is not {base} or one of its subtypes")
+        allowed = self.fields(target)
+        lower = {k.lower(): k for k in allowed}
+        unknown: List[str] = []
+        for k, v in value.items():
+            if k == TYPE_HINT_KEY:
+                continue
+            if k in allowed:
+                problems += self.validate_nested(allowed[k].get("type", ""), v, f"{path}.{k}", depth + 1)
+            elif str(k).lower() in lower:
+                problems.append(
+                    f"{path}.{k} has the wrong case: did you mean {lower[str(k).lower()]}? "
+                    "Field names are case-sensitive and the server silently drops a mismatched key."
+                )
+            else:
+                unknown.append(str(k))
+        if unknown:
+            problems.append(
+                f"{path} has unknown field(s) {', '.join(unknown)} for type {target}; "
+                f"see ss_api_describe for the fields"
+            )
+        return problems
+
+
+# ------------------------------------------------------------------ coercion
 def _coerce_one(name: str, typ: str, value: Any) -> Any:
     if value is None:
         return None
@@ -235,20 +452,21 @@ def _coerce_one(name: str, typ: str, value: Any) -> Any:
             return to_wcf_date(value)
         except ValueError as exc:
             raise ValueError(f"parameter '{name}' must be an ISO 8601 date-time ({exc})") from None
-    if typ == "string":
+    if typ in ("string", "String"):
         if isinstance(value, (dict, list)):
             raise ValueError(f"parameter '{name}' must be a string")
         return str(value)
-    return value  # complex types pass through unchanged
+    return value  # complex types pass through; ss_stage_write checks their keys (validate_nested)
 
 
 def coerce_params(info: MethodInfo, params: Optional[Dict[str, Any]]) -> Tuple[Dict[str, Any], List[str]]:
     """Validate params against the catalog. Returns (body, notes). Raises ValueError on bad input.
 
-    * authTicket keys are dropped (never sent).
-    * Unknown parameter names are rejected with the list of valid names.
+    * authTicket keys are dropped (the client adds the {} stub itself where a method needs it).
+    * Unknown parameter names are rejected with the list of valid names (and a 'did you mean'
+      for a case-only mismatch).
     * int, bool, Guid, Guid[] and string values are checked; DateTime accepts ISO 8601 and is
-      converted to '/Date(ms)/'. Complex types pass through unchanged.
+      converted to '/Date(ms)/'. Complex types pass through unchanged here.
     """
     if params is None:
         params = {}
@@ -256,14 +474,16 @@ def coerce_params(info: MethodInfo, params: Optional[Dict[str, Any]]) -> Tuple[D
         raise ValueError("params must be a JSON object keyed by parameter name")
     notes: List[str] = []
     types = info.param_types
+    lower = {n.lower(): n for n in types}
     body: Dict[str, Any] = {}
     unknown = []
     for k, v in params.items():
         if str(k).lower() == "authticket":
-            notes.append("authTicket removed: the gateway resolves it.")
+            notes.append("Caller authTicket removed: the gateway resolves the session.")
             continue
         if k not in types:
-            unknown.append(str(k))
+            hint = lower.get(str(k).lower())
+            unknown.append(f"{k} (did you mean {hint}?)" if hint else str(k))
             continue
         body[k] = _coerce_one(k, types[k], v)
     if unknown:
@@ -275,3 +495,39 @@ def coerce_params(info: MethodInfo, params: Optional[Dict[str, Any]]) -> Tuple[D
 def missing_note(info: MethodInfo, body: Dict[str, Any]) -> Optional[str]:
     missing = [n for n in info.param_names if n not in body]
     return ("not supplied (server default applies): " + ", ".join(missing)) if missing else None
+
+
+def _is_int(v: Any) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool)
+
+
+def check_clip_positions(method: str, props: Dict[str, Any]) -> Tuple[Optional[str], List[str]]:
+    """Validate the 100 ns tick positions of a ClipProperties payload.
+
+    Returns (error, preview_lines). Clips need integer StartPosition < EndPosition and a span of at
+    least 1 s. A single-frame screenshot (ClipPropertiesType 12) needs Start <= End. Methods and
+    types that act on an existing clip may leave both positions out."""
+    t = props.get("ClipPropertiesType")
+    has = "StartPosition" in props or "EndPosition" in props
+    if not has and (t in EXISTING_CLIP_TYPES or method in EXISTING_CLIP_METHODS):
+        return None, []
+    s, e = props.get("StartPosition"), props.get("EndPosition")
+    hint = "positions are 100 ns ticks (seconds x 10,000,000); did you send milliseconds?"
+    if not (_is_int(s) and _is_int(e)):
+        return f"ClipProperties.StartPosition and EndPosition must both be integers; {hint}", []
+    if s < 0:
+        return f"ClipProperties.StartPosition must not be negative; {hint}", []
+    if t == CREATE_IMAGE_TYPE:
+        if e < s:
+            return f"ClipProperties.EndPosition must not be before StartPosition; {hint}", []
+    else:
+        if e <= s:
+            return f"ClipProperties.StartPosition must be less than EndPosition; {hint}", []
+        if e - s < TICKS_PER_SECOND:
+            return f"ClipProperties span is {(e - s) / TICKS_PER_SECOND:.4f} s, under the 1 s minimum; {hint}", []
+    lines = [
+        f"Clip in:     {seconds_to_clock(s / TICKS_PER_SECOND, fraction=True)}  (StartPosition {s} ticks)",
+        f"Clip out:    {seconds_to_clock(e / TICKS_PER_SECOND, fraction=True)}  (EndPosition {e} ticks)",
+        f"Clip length: {seconds_to_clock((e - s) / TICKS_PER_SECOND, fraction=True)}",
+    ]
+    return None, lines

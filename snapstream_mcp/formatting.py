@@ -7,6 +7,8 @@
   unspecified kind can arrive shifted by the server's UTC offset (up to 14 hours), so any instant
   within 14 hours of the min date counts as unset.
 * Keeps ISO 8601 durations and adds a sibling "<key>_seconds" number.
+* Tick-valued fields (100 ns units: StartPosition, EndPosition, *Ticks, and SmartChapter Start/End
+  when the caller says so) keep their integer and gain a sibling "<key>_seconds" number.
 * Optionally drops null and empty fields, and caps the serialized size with a paging hint.
 * Converts agent-supplied ISO 8601 date-times to the "/Date(ms)/" form for requests.
 """
@@ -16,7 +18,7 @@ from __future__ import annotations
 import datetime as _dt
 import json
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 DATE_RE = re.compile(r"^/Date\((-?\d+)([+-]\d{4})?\)/$")
 DURATION_RE = re.compile(
@@ -28,6 +30,11 @@ MIN_DATE_MS = -62135596800000
 # DateTime.MinValue of kind Local or Unspecified serializes as UTC-shifted ticks plus an offset, for
 # example "/Date(-62135575200000-0600)/". UTC offsets never exceed 14 hours.
 UNSET_DATE_MAX_MS = MIN_DATE_MS + 14 * 3600 * 1000
+TICKS_PER_SECOND = 10_000_000  # .NET ticks are 100 ns
+# int64 tick fields in the API schemas (the catalog's tick_fields list is the authority at runtime).
+DEFAULT_TICK_KEYS = frozenset(
+    ("StartPosition", "EndPosition", "StartTicks", "EndTicks", "NewStartTicks", "NewEndTicks", "TimeoutTicks")
+)
 _UTC = _dt.timezone.utc
 _EPOCH = _dt.datetime(1970, 1, 1, tzinfo=_UTC)
 
@@ -93,6 +100,53 @@ def to_wcf_date(value: Any) -> Any:
     return f"/Date({ms})/"
 
 
+def seconds_to_ticks(seconds: float) -> int:
+    """Seconds -> 100 ns ticks (rounded to the nearest tick)."""
+    return int(round(float(seconds) * TICKS_PER_SECOND))
+
+
+def ticks_to_seconds(ticks: int) -> float:
+    """100 ns ticks -> seconds (millisecond precision)."""
+    return round(int(ticks) / TICKS_PER_SECOND, 3)
+
+
+_CLOCK_RE = re.compile(r"^(?:(\d+):)?(\d{1,2}):(\d{1,2}(?:\.\d+)?)$")
+
+
+def parse_clip_time(value: Any) -> float:
+    """A clip in or out point -> seconds from the start of the file. Accepts a number of seconds,
+    "hh:mm:ss(.fff)" or "mm:ss(.fff)", or "ms:<n>" for milliseconds (the unit search refinement
+    hits use). Raises ValueError otherwise."""
+    if isinstance(value, bool) or value is None:
+        raise ValueError("expected seconds, 'hh:mm:ss(.fff)' or 'ms:<n>'")
+    if isinstance(value, (int, float)):
+        secs = float(value)
+    elif isinstance(value, str):
+        s = value.strip().lower()
+        if s.startswith("ms:"):
+            try:
+                secs = float(s[3:].strip()) / 1000.0
+            except ValueError:
+                raise ValueError(f"not a millisecond value: {value!r}") from None
+        else:
+            m = _CLOCK_RE.match(s)
+            if m:
+                h, mi, sec = m.groups()
+                if int(mi) >= 60 or float(sec) >= 60:
+                    raise ValueError(f"minutes and seconds must be under 60: {value!r}")
+                secs = int(h or 0) * 3600 + int(mi) * 60 + float(sec)
+            else:
+                try:
+                    secs = float(s)
+                except ValueError:
+                    raise ValueError(f"expected seconds, 'hh:mm:ss(.fff)' or 'ms:<n>', got {value!r}") from None
+    else:
+        raise ValueError("expected seconds, 'hh:mm:ss(.fff)' or 'ms:<n>'")
+    if secs != secs or secs < 0:  # NaN or negative
+        raise ValueError(f"time must be zero or positive, got {value!r}")
+    return secs
+
+
 def iso_now_plus(hours: float = 0.0) -> str:
     dt = _dt.datetime.now(_UTC) + _dt.timedelta(hours=hours)
     return dt.isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -119,20 +173,30 @@ def _norm_scalar(value: Any) -> Any:
     return value
 
 
-def normalize(data: Any) -> Any:
-    """Recursively convert dates, unset GUIDs and durations (adds '<key>_seconds')."""
+def normalize(data: Any, tick_keys: Optional[Iterable[str]] = None) -> Any:
+    """Recursively convert dates, unset GUIDs and durations (adds '<key>_seconds'). Integer values
+    of the tick_keys fields (default DEFAULT_TICK_KEYS) also gain '<key>_seconds'."""
+    keys = DEFAULT_TICK_KEYS if tick_keys is None else frozenset(tick_keys)
+    return _normalize(data, keys)
+
+
+def _normalize(data: Any, keys: frozenset) -> Any:
     if isinstance(data, dict):
         out: Dict[str, Any] = {}
         for k, v in data.items():
-            nv = normalize(v)
+            nv = _normalize(v, keys)
             out[k] = nv
+            if f"{k}_seconds" in data:
+                continue
             if isinstance(v, str) and v.startswith(("P", "-P")):
                 secs = iso_duration_seconds(v)
-                if secs is not None and f"{k}_seconds" not in data:
+                if secs is not None:
                     out[f"{k}_seconds"] = secs
+            elif k in keys and isinstance(v, int) and not isinstance(v, bool):
+                out[f"{k}_seconds"] = ticks_to_seconds(v)
         return out
     if isinstance(data, list):
-        return [normalize(v) for v in data]
+        return [_normalize(v, keys) for v in data]
     return _norm_scalar(data)
 
 
@@ -277,17 +341,25 @@ def format_response(
     drop_empty: bool = True,
     index: Optional[int] = None,
     paged: bool = False,
+    tick_keys: Optional[Iterable[str]] = None,
 ) -> Dict[str, Any]:
-    data = normalize(unwrap_result(raw, method))
+    data = normalize(unwrap_result(raw, method), tick_keys)
     data = redact_fields(data, strict=bool(STRICT_REDACT_METHODS.search(method)))
     if drop_empty:
         data = compact(data)
     return cap_output(data, max_chars, index=index, paged=paged)
 
 
-def seconds_to_clock(sec: float) -> str:
-    sec = max(0, int(sec))
-    return f"{sec // 3600:02d}:{(sec % 3600) // 60:02d}:{sec % 60:02d}"
+def seconds_to_clock(sec: float, fraction: bool = False) -> str:
+    """Seconds -> 'hh:mm:ss' ('hh:mm:ss.fff' with fraction=True when there is a fractional part)."""
+    total = max(0.0, float(sec))
+    if fraction:
+        ms = int(round(total * 1000))
+        whole, frac = divmod(ms, 1000)
+        base = f"{whole // 3600:02d}:{(whole % 3600) // 60:02d}:{whole % 60:02d}"
+        return base + (f".{frac:03d}" if frac else "")
+    s = int(total)
+    return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
 
 
 EPOCH_MS_MIN = 100_000_000_000  # 1e11 ms is March 1973; larger numbers are epoch milliseconds

@@ -95,3 +95,15 @@ def test_settings_from_env(monkeypatch):
     assert s.write_min_interval == 12.0
     assert s.max_concurrency == 1  # clamped to the minimum
     assert s.stage_ttl_seconds == 600
+
+
+@pytest.mark.parametrize("name", ["SNAPSTREAM_MCP_EMPTY_AUTH_TICKET"])
+def test_bool_env_rejects_junk(monkeypatch, name):
+    monkeypatch.setenv(name, "maybe")
+    with pytest.raises(ConfigError, match=name):
+        Settings.from_env()
+
+
+def test_call_counter_lives_beside_audit_file(tmp_path):
+    s = Settings(audit_file=tmp_path / "x" / "writes.audit.jsonl")
+    assert s.call_counter_file == tmp_path / "x" / "snapstream_calls.daily.json"
