@@ -1,11 +1,23 @@
 {
- "_comment": "Authoritative per-method access for the SnapStream tenant API (read, write, blocked). tools/build_catalog.py applies this file; any method absent from it is built as write (fail closed).",
+ "_comment": "Authoritative per-method access for the SnapStream tenant API (read, write, blocked). tools/build_catalog.py applies this file; any method absent from it is built as write (fail closed). Optional per-row keys: read_only_comment (required when a read method is flagged not read-only by the OpenAPI spec), auth_ticket ('empty_object' or 'omit', overrides the value derived from the spec), ui_name (the web app name), not_in_spec (summary, params, returns, perms and features for a method the OpenAPI spec leaves out; such a method must be blocked).",
  "methods": [
   {
    "service": "AuthenticationManager",
    "method": "CloneSession",
    "access": "blocked",
    "reason": "Mints a new session ticket from an existing one; returns a ticket."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "GenerateApiLoginCredentials",
+   "access": "blocked",
+   "reason": "Generates an API user and returns its credentials; credential handling."
+  },
+  {
+   "service": "AuthenticationManager",
+   "method": "GenerateTVBoxLoginCredentials",
+   "access": "blocked",
+   "reason": "Generates a TV App user and returns its credentials; takes a server ticket; credential handling."
   },
   {
    "service": "AuthenticationManager",
@@ -281,7 +293,8 @@
    "service": "Configuration",
    "method": "UseBackendMachineName",
    "access": "read",
-   "reason": "Returns a bool about machine-name routing for the caller; no side effects."
+   "reason": "Returns a bool about machine-name routing for the caller; no side effects.",
+   "read_only_comment": "Spec flags it not read-only (missing attribute); the description is a pure query."
   },
   {
    "service": "FeatureManager",
@@ -317,97 +330,203 @@
    "service": "FileAccess",
    "method": "EndSession",
    "access": "blocked",
-   "reason": "Closes a raw file access session; only meaningful with the blocked session methods."
+   "reason": "Not exposed by the gateway per the OpenAPI spec. Closes a raw file access session; only meaningful with the blocked session methods.",
+   "not_in_spec": {
+    "summary": "Closes a file access session.",
+    "params": [
+     {
+      "name": "sessionId",
+      "type": "Guid"
+     }
+    ],
+    "returns": "void",
+    "perms": [
+     "ValidTicket"
+    ],
+    "features": []
+   }
   },
   {
    "service": "FileAccess",
    "method": "Exists",
-   "access": "read",
-   "reason": "Checks whether a server path exists; no side effects."
+   "access": "blocked",
+   "reason": "Not exposed by the gateway per the OpenAPI spec. Checks whether a server path exists; no side effects.",
+   "not_in_spec": {
+    "summary": "Checks whether a file or directory exists on the server.",
+    "params": [
+     {
+      "name": "path",
+      "type": "string"
+     }
+    ],
+    "returns": "bool",
+    "perms": [
+     "ValidTicket"
+    ],
+    "features": []
+   }
   },
   {
    "service": "FileAccess",
    "method": "GetLength",
-   "access": "read",
-   "reason": "Returns a file length; no side effects."
+   "access": "blocked",
+   "reason": "Not exposed by the gateway per the OpenAPI spec. Returns a file length; no side effects.",
+   "not_in_spec": {
+    "summary": "Gets the length of a file.",
+    "params": [
+     {
+      "name": "path",
+      "type": "string"
+     }
+    ],
+    "returns": "long",
+    "perms": [
+     "ValidTicket"
+    ],
+    "features": []
+   }
   },
   {
    "service": "FileAccess",
    "method": "OpenReadStream",
    "access": "blocked",
-   "reason": "Allocates a byte stream on a file session; raw stream plumbing with no JSON-usable output."
+   "reason": "Not exposed by the gateway per the OpenAPI spec. Allocates a byte stream on a file session; raw stream plumbing with no JSON-usable output.",
+   "not_in_spec": {
+    "summary": "Enables read operations on the given session.",
+    "params": [
+     {
+      "name": "sessionId",
+      "type": "Guid"
+     }
+    ],
+    "returns": "Guid",
+    "perms": [
+     "ValidTicket"
+    ],
+    "features": []
+   }
   },
   {
    "service": "FileAccess",
    "method": "StartSession",
    "access": "blocked",
-   "reason": "Allocates a server-side file handle and accepts a write accessMode; raw file stream plumbing."
+   "reason": "Not exposed by the gateway per the OpenAPI spec. Allocates a server-side file handle and accepts a write accessMode; raw file stream plumbing.",
+   "not_in_spec": {
+    "summary": "Starts a file access session.",
+    "params": [
+     {
+      "name": "path",
+      "type": "string"
+     },
+     {
+      "name": "fileMode",
+      "type": "FileMode"
+     },
+     {
+      "name": "accessMode",
+      "type": "FileAccess"
+     }
+    ],
+    "returns": "Guid",
+    "perms": [
+     "ValidTicket"
+    ],
+    "features": [],
+    "note": "Tenant tickets may only open with accessMode=Read; write access requires the internal ServiceNode permission."
+   }
   },
   {
    "service": "FileAccess",
    "method": "StartSessionWithShareMode",
    "access": "blocked",
-   "reason": "Same as StartSession with a share mode; allocates a file handle, raw stream plumbing."
+   "reason": "Not exposed by the gateway per the OpenAPI spec. Same as StartSession with a share mode; allocates a file handle, raw stream plumbing.",
+   "not_in_spec": {
+    "summary": "Starts a file access session with an explicit share mode.",
+    "params": [
+     {
+      "name": "path",
+      "type": "string"
+     },
+     {
+      "name": "fileMode",
+      "type": "FileMode"
+     },
+     {
+      "name": "accessMode",
+      "type": "FileAccess"
+     },
+     {
+      "name": "shareMode",
+      "type": "FileShare"
+     }
+    ],
+    "returns": "Guid",
+    "perms": [
+     "ValidTicket"
+    ],
+    "features": [],
+    "note": "Tenant tickets may only open with accessMode=Read; write access requires the internal ServiceNode permission."
+   }
   },
   {
    "service": "LocalConfiguration",
    "method": "GetAWSRegion",
-   "access": "read",
-   "reason": "Returns the AWS region name or null; no side effects."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetApiLevel",
-   "access": "read",
-   "reason": "Returns the Broker API level string; no side effects."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsBool",
-   "access": "read",
-   "reason": "Reads a machine-local setting as bool; typed scalar, no side effects."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsDouble",
-   "access": "read",
-   "reason": "Reads a machine-local setting as double; typed scalar, no side effects."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsGuid",
    "access": "blocked",
-   "reason": "Arbitrary machine-local setting lookup returning a raw guid; can expose stored credentials or keys."
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsInt",
-   "access": "read",
-   "reason": "Reads a machine-local setting as int; typed scalar, no side effects."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsLong",
-   "access": "read",
-   "reason": "Reads a machine-local setting as long; typed scalar, no side effects."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsObject",
    "access": "blocked",
-   "reason": "Arbitrary machine-local setting lookup returning a raw object; can expose stored credentials or keys."
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "GetSettingAsString",
    "access": "blocked",
-   "reason": "Arbitrary machine-local setting lookup returning a raw string; can expose stored credentials or keys."
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "LocalConfiguration",
    "method": "SetSetting",
-   "access": "write",
-   "reason": "Changes a machine-local setting (EditSettings)."
+   "access": "blocked",
+   "reason": "The gateway returns HTTP 404 for every LocalConfig path (verified live 2026-11-25 on demo, build 8.1.264.20261102), although the OpenAPI spec lists it."
   },
   {
    "service": "Logger",
@@ -1329,6 +1448,12 @@
   },
   {
    "service": "Scheduler",
+   "method": "CancelLiveFeedSelection",
+   "access": "write",
+   "reason": "Cancels a live feed selection, deleting its recording job and releasing its vendor subscription (EditRecording)."
+  },
+  {
+   "service": "Scheduler",
    "method": "CancelUpdate",
    "access": "write",
    "reason": "Cancels the running program guide update."
@@ -1380,6 +1505,12 @@
    "method": "DeleteCustomLineup",
    "access": "write",
    "reason": "Deletes a custom lineup."
+  },
+  {
+   "service": "Scheduler",
+   "method": "DeleteLiveFeedSelection",
+   "access": "write",
+   "reason": "Drops a live feed pick and its subscription rows."
   },
   {
    "service": "Scheduler",
@@ -1761,6 +1892,72 @@
   },
   {
    "service": "Scheduler",
+   "method": "GetLiveFeedDisplayChannel",
+   "access": "write",
+   "reason": "Creates the vendor display channel on first use, so it is not a pure read."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedEvent",
+   "access": "read",
+   "reason": "Reads one mirrored vendor event; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedEventItemCount",
+   "access": "read",
+   "reason": "Counts live feed event rows; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedEventItems",
+   "access": "read",
+   "reason": "Pages live feed events with their picks and recordings; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedEventRange",
+   "access": "read",
+   "reason": "Reads the live feed event date range; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedEvents",
+   "access": "read",
+   "reason": "Reads mirrored vendor events from the local mirror; no vendor call."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedProviderStatus",
+   "access": "read",
+   "reason": "Reports whether a vendor is configured and its loops are up; no vendor call."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedRenditions",
+   "access": "read",
+   "reason": "Reads the stream variants for an event; may refresh a cached ladder from the vendor but changes no SnapStream state."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedSelections",
+   "access": "read",
+   "reason": "Reads recording decisions made against live feed events; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedSubscriptions",
+   "access": "read",
+   "reason": "Reads the vendor subscriptions held for one selection; no side effects."
+  },
+  {
+   "service": "Scheduler",
+   "method": "GetLiveFeedUsage",
+   "access": "read",
+   "reason": "Reads the vendor origin and usage terms behind a recorded item; no side effects."
+  },
+  {
+   "service": "Scheduler",
    "method": "GetLiveTvRecording",
    "access": "read",
    "reason": "Fetches the recording behind a Live TV session; read-only."
@@ -1941,6 +2138,12 @@
   },
   {
    "service": "Scheduler",
+   "method": "IsLiveFeedEnabled",
+   "access": "read",
+   "reason": "Reports whether the live feed feature is configured and running; no side effects."
+  },
+  {
+   "service": "Scheduler",
    "method": "KeepAliveLiveTv",
    "access": "write",
    "reason": "Heartbeat that keeps a Live TV session and its tuner allocated."
@@ -2037,6 +2240,12 @@
   },
   {
    "service": "Scheduler",
+   "method": "SaveLiveFeedSelection",
+   "access": "write",
+   "reason": "Records a decision to record a live feed event; provisions a vendor subscription and a recording job (CreateRecording)."
+  },
+  {
+   "service": "Scheduler",
    "method": "SaveScheduledBlast",
    "access": "write",
    "reason": "Creates or updates a scheduled remote blast command."
@@ -2079,6 +2288,12 @@
   },
   {
    "service": "Scheduler",
+   "method": "TestLiveFeedConnection",
+   "access": "blocked",
+   "reason": "Takes a vendor clientId and clientSecret; credential handling."
+  },
+  {
+   "service": "Scheduler",
    "method": "TouchLiveTvStreamJob",
    "access": "write",
    "reason": "Heartbeat that keeps a Live TV streaming job and its tuner allocated."
@@ -2117,7 +2332,8 @@
    "service": "TaskManager",
    "method": "AiClipDesigner",
    "access": "write",
-   "reason": "Creates a task list that renders an AI-designed social clip."
+   "reason": "Creates a task list that renders an AI-designed social clip.",
+   "ui_name": "Create for Social"
   },
   {
    "service": "TaskManager",
@@ -2249,7 +2465,8 @@
    "service": "TaskManager",
    "method": "DesignExistingClip",
    "access": "write",
-   "reason": "Creates a new Create for Social clip from a library clip."
+   "reason": "Creates a new Create for Social clip from a library clip.",
+   "ui_name": "Create for Social"
   },
   {
    "service": "TaskManager",
@@ -2711,13 +2928,15 @@
    "service": "TaskManager",
    "method": "TaskRunning",
    "access": "read",
-   "reason": "Returns whether one task is running; no side effects."
+   "reason": "Returns whether one task is running; no side effects.",
+   "read_only_comment": "Spec flags it not read-only (missing attribute); the description is a pure query."
   },
   {
    "service": "TaskManager",
    "method": "TasksRunning",
    "access": "read",
-   "reason": "Returns whether any task is running; no side effects."
+   "reason": "Returns whether any task is running; no side effects.",
+   "read_only_comment": "Spec flags it not read-only (missing attribute); the description is a pure query."
   },
   {
    "service": "TaskManager",
@@ -2759,7 +2978,8 @@
    "service": "TaskManager",
    "method": "UpdateDesign",
    "access": "write",
-   "reason": "Re-renders an existing Create for Social clip."
+   "reason": "Re-renders an existing Create for Social clip.",
+   "ui_name": "Create for Social"
   },
   {
    "service": "TaskManager",

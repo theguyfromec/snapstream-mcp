@@ -1,0 +1,66 @@
+{
+ "_comment": "Hand-kept corrections merged over components.schemas by tools/build_catalog.py. The spec's clip properties types are stale, so their fields are annotated (and extended); the source-item fields sit on BaseClipProperties so every clip properties subtype accepts them. The annotations come from the team's Tenant API DX feedback (2026-11-25). status: required = the server rejected a request without it; used = it changed the output; sent = present in a working request but not tested alone; unknown = seen in web UI task parameters, effect unknown. A property listed here replaces the spec's type only when 'type' is given; its description is appended to the spec's.",
+ "schemas": {
+  "BaseClipProperties": {
+   "description_append": "The source-item fields copied from GetMediaItem (ItemId, FolderPathId, FolderId, MachineId, DriveId, FullPath, SourceFilename, Filename, FileName, LiveTvSessionInfo) are accepted on every clip properties type; the team's DX feedback saw them in working requests.",
+   "properties": {
+    "ItemId": {"type": "Guid", "status": "used", "description": "The source media item's Id. Not in the OpenAPI spec."},
+    "FolderPathId": {"type": "Guid", "status": "sent", "description": "Copied from GetMediaItem. Not in the OpenAPI spec."},
+    "FolderId": {"type": "Guid", "status": "sent", "description": "Copied from GetMediaItem. Not in the OpenAPI spec."},
+    "MachineId": {"type": "Guid", "status": "sent", "description": "Copied from GetMediaItem (FolderPathMachineId). Not in the OpenAPI spec."},
+    "DriveId": {"type": "Guid", "status": "sent", "description": "Copied from GetMediaItem. Not in the OpenAPI spec."},
+    "FullPath": {"type": "string", "status": "sent", "description": "Copied from GetMediaItem. Not in the OpenAPI spec."},
+    "SourceFilename": {"type": "string", "status": "sent", "description": "Copied from GetMediaItem (Filename). Not in the OpenAPI spec."},
+    "Filename": {"type": "string", "status": "sent", "description": "Copied from GetMediaItem. Not in the OpenAPI spec."},
+    "FileName": {"type": "string", "status": "sent", "description": "Sent alongside Filename in a working request. Not in the OpenAPI spec."},
+    "LiveTvSessionInfo": {"type": "object", "status": "sent", "description": "{SessionId: empty GUID, LiveSessionStartIso: recording start, UTC}. Not in the OpenAPI spec."}
+   }
+  },
+  "ClipProperties": {
+   "required": ["ClipPropertiesType", "SourcePathId", "SourceFile", "StartPosition", "EndPosition"],
+   "description_append": "Field names are case-sensitive: the server silently drops a key whose case does not match (lowercase 'subtitles' is ignored).",
+   "properties": {
+    "ClipPropertiesType": {"status": "required", "description": "1 (Clip) works for both ClipFile and AiClipDesigner."},
+    "SourcePathId": {"status": "required", "description": "The source media item's FolderPathId."},
+    "SourceFile": {"status": "required", "description": "The source media item's Filename."},
+    "StartPosition": {"status": "required", "description": "100 ns ticks from the start of the source file (seconds x 10,000,000)."},
+    "EndPosition": {"status": "required", "description": "100 ns ticks from the start of the source file (seconds x 10,000,000); after StartPosition."},
+    "ClipTitle": {"status": "used", "description": "Title shown in the Library."},
+    "DestinationFolderId": {"status": "used", "description": "Library folder for the finished clip."},
+    "ChannelId": {"status": "sent", "description": "Copied from GetMediaItem."},
+    "ContextId": {"status": "sent", "description": "Copied from GetMediaItem."},
+    "ClipTags": {"status": "sent", "description": "Sent as []."},
+    "ClipTimeCodedTags": {"status": "sent", "description": "Sent as []."},
+    "LanguageTrackIds": {"status": "sent", "description": "Sent as []."},
+    "BookmarkId": {"status": "sent", "description": "Sent as the empty GUID."},
+    "VariantId": {"status": "sent", "description": "Sent as the empty GUID (the original)."},
+    "Orientation": {"status": "used (social)", "description": "UNRESOLVED: the spec says 0 = Vertical, 1 = Horizontal, 2 = Square; a live test rendered 1 as vertical 1080x1920. Confirm before relying on a value."},
+    "Layout": {"status": "sent (social)", "description": "0 = Auto was used in a working request."},
+    "Subtitles": {"status": "used (social)", "description": "Capital S. Lowercase 'subtitles' is dropped without an error."},
+    "SubtitleTemplateId": {"status": "used (social)", "description": "For example blocky-bounce or classic; the full list is unknown."},
+    "TitleTemplateId": {"status": "used (social)", "description": "For example classic; the full list is unknown."},
+    "SubtitleX": {"status": "used (social)", "description": "Appears to be a percentage of the frame."},
+    "SubtitleY": {"status": "used (social)", "description": "Appears to be a percentage of the frame."},
+    "MaxLines": {"status": "used (social)"},
+    "MaxCharsPerLine": {"status": "used (social)"},
+    "FontSize": {"status": "used (social)"},
+    "FontFamily": {"status": "used (social)", "description": "For example Roboto or TheBoldFont."},
+    "TextCase": {"status": "used (social)", "description": "For example none or uppercase."},
+    "FontWeight": {"status": "used (social)", "description": "A string such as \"500\", not a number."},
+    "BaseTextColor": {"status": "used (social)", "description": "8-digit hex; the last two digits are alpha."},
+    "BackgroundColor": {"status": "used (social)", "description": "8-digit hex; the last two digits are alpha."},
+    "WordHighlightColor": {"status": "used (social)", "description": "8-digit hex; the last two digits are alpha."},
+    "IsItalic": {"status": "used (social)"},
+    "EnableHighlightBlock": {"status": "used (social)"},
+    "ClipRegionId": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "ThumbnailGeneration": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "IsLiveClip": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "Trimming": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "GenerateLoudnessData": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "GenerateProxy": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "SeriesTitle": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."},
+    "EpisodeTitle": {"type": "object", "status": "unknown", "description": "Seen in web UI task parameters; effect unknown. Not in the OpenAPI spec."}
+   }
+  }
+ }
+}
